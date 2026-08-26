@@ -928,7 +928,6 @@ function setupFormHandlers() {
   $("#btn-save-schedule").addEventListener("click", handleSaveSchedule);
   $("#btn-change-pw").addEventListener("click", handleChangePassword);
   $("#btn-change-email").addEventListener("click", handleChangeEmail);
-  $("#btn-delete-account").addEventListener("click", handleDeleteAccount);
 
   $("#btn-add-country").addEventListener("click", async () => {
     const code = $("#add-country-select").value;
@@ -1311,62 +1310,6 @@ async function handleSaveSchedule() {
 
   await loadWorkSchedules();
   statusSpan.textContent = t("dash.company.schSaved");
-}
-
-// ---------------------------------------------------------------------
-// 9. Eliminar empresa (zona de peligro)
-// ---------------------------------------------------------------------
-async function handleDeleteAccount() {
-  const alertBox = $("#danger-alert");
-  alertBox.className = "alert";
-
-  const password    = $("#danger-pw").value;
-  const confirmCode = $("#danger-confirm-code").value.trim().toUpperCase();
-
-  if (!password || !confirmCode) {
-    alertBox.textContent = t("dash.danger.errEmpty");
-    alertBox.className = "alert error";
-    return;
-  }
-  if (confirmCode !== company.code.toUpperCase()) {
-    alertBox.textContent = t("dash.danger.errWrongCode", { code: company.code });
-    alertBox.className = "alert error";
-    return;
-  }
-
-  // Verificar contraseña actual
-  const { data: { session } } = await supabase.auth.getSession();
-  const email = session?.user?.email;
-  const { error: signInError } = await supabase.auth.signInWithPassword({ email, password });
-  if (signInError) {
-    alertBox.textContent = t("dash.danger.errWrongPw");
-    alertBox.className = "alert error";
-    return;
-  }
-
-  if (!confirm(t("dash.danger.finalConfirm"))) return;
-
-  alertBox.textContent = t("dash.danger.deleting");
-  alertBox.className = "alert";
-  $("#btn-delete-account").disabled = true;
-
-  try {
-    // Eliminar en orden (respetando FK: registros antes de perfiles, perfiles antes de empresa)
-    await supabase.from("attendance_records").delete().eq("company_id", company.id);
-    await supabase.from("vacations").delete().eq("company_id", company.id);
-    await supabase.from("work_schedules").delete().eq("company_id", company.id);
-    await supabase.from("holidays").delete().eq("company_id", company.id);
-    await supabase.from("company_holiday_countries").delete().eq("company_id", company.id);
-    await supabase.from("profiles").delete().eq("company_id", company.id);
-    await supabase.from("companies").delete().eq("id", company.id);
-
-    await supabase.auth.signOut();
-    window.location.href = "index.html";
-  } catch (err) {
-    alertBox.textContent = t("dash.danger.errDelete", { msg: err.message });
-    alertBox.className = "alert error";
-    $("#btn-delete-account").disabled = false;
-  }
 }
 
 function escapeHtml(str = "") {

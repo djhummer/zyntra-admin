@@ -381,6 +381,11 @@ const dict = {
   "sa.actionSuspend": { es: "suspender", en: "suspending", id: "menangguhkan" },
   "sa.actionUpdate": { es: "actualizar", en: "updating", id: "memperbarui" },
   "sa.errUpdate": { es: "No se pudo actualizar: {msg}", en: "Couldn't update: {msg}", id: "Gagal memperbarui: {msg}" },
+  "sa.btnDelete":          { es: "Eliminar", en: "Delete", id: "Hapus" },
+  "sa.deletePrompt":       { es: "Vas a eliminar permanentemente la empresa «{name}» y todos sus datos. Escribe el código de la empresa ({code}) para confirmar:", en: "You are about to permanently delete company «{name}» and all its data. Type the company code ({code}) to confirm:", id: "Kamu akan menghapus permanen perusahaan «{name}» dan semua datanya. Ketik kode perusahaan ({code}) untuk konfirmasi:" },
+  "sa.deleteWrongCode":    { es: "El código no coincide. Operación cancelada.", en: "Code doesn't match. Operation cancelled.", id: "Kode tidak cocok. Operasi dibatalkan." },
+  "sa.deleteFinalConfirm": { es: "¿Estás absolutamente seguro? Esta acción es IRREVERSIBLE y eliminará todos los datos de «{name}».", en: "Are you absolutely sure? This is IRREVERSIBLE and will delete all data for «{name}».", id: "Apakah kamu benar-benar yakin? Ini TIDAK DAPAT DIBATALKAN dan akan menghapus semua data «{name}»." },
+  "sa.deleteErr":          { es: "Error al eliminar: {msg}", en: "Error deleting: {msg}", id: "Kesalahan saat menghapus: {msg}" },
 
   // ---------------- Super-admin-setup ----------------
   "sas.pageTitle": { es: "ZyntrAbsen · Configuración inicial", en: "ZyntrAbsen · Initial setup", id: "ZyntrAbsen · Pengaturan awal" },

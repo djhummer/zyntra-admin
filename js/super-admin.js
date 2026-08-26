@@ -86,6 +86,13 @@ async function loadCompanies() {
       loadCompanies();
     });
   });
+
+  list.querySelectorAll("[data-delete-company]").forEach((btn) => {
+    btn.addEventListener("click", () => {
+      const c = { id: btn.dataset.deleteCompany, code: btn.dataset.code, name: btn.dataset.name };
+      deleteCompany(c);
+    });
+  });
 }
 
 function statusBadge(status) {
@@ -99,13 +106,37 @@ function statusBadge(status) {
 }
 
 function actionButtons(c) {
+  const deleteBtn = `<button class="btn btn-ghost" data-delete-company="${c.id}" data-code="${escapeHtml(c.code)}" data-name="${escapeHtml(c.name)}" style="color:#c0392b">${t("sa.btnDelete")}</button>`;
   if (c.status === "pending") {
-    return `<button class="btn btn-stamp" data-set-status="active" data-company-id="${c.id}">${t("sa.btnApprove")}</button>`;
+    return `<button class="btn btn-stamp" data-set-status="active" data-company-id="${c.id}">${t("sa.btnApprove")}</button> ${deleteBtn}`;
   }
   if (c.status === "active") {
-    return `<button class="btn btn-ghost" data-set-status="suspended" data-company-id="${c.id}">${t("sa.btnSuspend")}</button>`;
+    return `<button class="btn btn-ghost" data-set-status="suspended" data-company-id="${c.id}">${t("sa.btnSuspend")}</button> ${deleteBtn}`;
   }
-  return `<button class="btn btn-primary" data-set-status="active" data-company-id="${c.id}">${t("sa.btnReactivate")}</button>`;
+  return `<button class="btn btn-primary" data-set-status="active" data-company-id="${c.id}">${t("sa.btnReactivate")}</button> ${deleteBtn}`;
+}
+
+async function deleteCompany(c) {
+  const typed = prompt(t("sa.deletePrompt", { name: c.name, code: c.code }));
+  if (!typed || typed.trim().toUpperCase() !== c.code.toUpperCase()) {
+    if (typed !== null) alert(t("sa.deleteWrongCode"));
+    return;
+  }
+  if (!confirm(t("sa.deleteFinalConfirm", { name: c.name }))) return;
+
+  try {
+    await supabase.from("attendance_records").delete().eq("company_id", c.id);
+    await supabase.from("vacations").delete().eq("company_id", c.id);
+    await supabase.from("work_schedules").delete().eq("company_id", c.id);
+    await supabase.from("holidays").delete().eq("company_id", c.id);
+    await supabase.from("company_holiday_countries").delete().eq("company_id", c.id);
+    await supabase.from("profiles").delete().eq("company_id", c.id);
+    const { error } = await supabase.from("companies").delete().eq("id", c.id);
+    if (error) throw error;
+    loadCompanies();
+  } catch (err) {
+    alert(t("sa.deleteErr", { msg: err.message }));
+  }
 }
 
 function escapeHtml(str = "") {
