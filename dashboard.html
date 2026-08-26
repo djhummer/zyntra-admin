@@ -221,6 +221,24 @@
           <button class="btn btn-stamp" id="btn-upload-logo" type="button" data-i18n="dash.company.uploadButton">Subir logo</button>
         </div>
       </div>
+
+      <div style="margin-top:32px; padding-top:28px; border-top:1px solid var(--line)">
+        <h2 class="main-title" style="font-size:16px; margin-bottom:6px" data-i18n="dash.company.hoursTitle">Horario laboral</h2>
+        <p class="hint" style="margin-bottom:16px" data-i18n="dash.company.hoursHint">
+          Cualquier marcaje fuera de este horario (o cualquier hora, en un día festivo) cuenta automáticamente como overtime.
+        </p>
+        <div class="inline-form" style="margin-bottom:0">
+          <div class="field">
+            <label for="work-start" data-i18n="dash.company.workStart">Entrada</label>
+            <input type="time" id="work-start" />
+          </div>
+          <div class="field">
+            <label for="work-end" data-i18n="dash.company.workEnd">Salida</label>
+            <input type="time" id="work-end" />
+          </div>
+          <button class="btn btn-primary" id="btn-save-hours" type="button" data-i18n="dash.company.hoursSave">Guardar horario</button>
+        </div>
+      </div>
     </section>
 
     <!-- ============ VISTA: RESPALDO ============ -->

@@ -41,6 +41,7 @@ async function init() {
   $("#employees-hint").innerHTML = t("dash.emp.hintHtml", { code: company.code });
   renderStatusBanner();
   renderLogo();
+  renderWorkHours();
 
   const { data: countryRows } = await supabase.from("countries").select("code, name");
   (countryRows || []).forEach((c) => { countriesMap[c.code] = c.name; });
@@ -245,6 +246,31 @@ async function loadReport() {
   renderReport();
 }
 
+// Empareja los marcajes de un día en sesiones (entrada+salida). Si alguien
+// marca dos veces en el mismo día (ej. jornada normal, y luego otra entrada/
+// salida en la noche por overtime desde casa), cada par queda como su
+// propia sesión en vez de perderse dentro de un solo "primera entrada -
+// última salida".
+function pairSessionsForDay(records) {
+  const sessions = [];
+  let pendingCheckIn = null;
+  for (const r of records) {
+    if (r.type === "check_in") {
+      if (pendingCheckIn) sessions.push({ checkIn: pendingCheckIn, checkOut: null });
+      pendingCheckIn = r;
+    } else if (r.type === "check_out") {
+      if (pendingCheckIn) {
+        sessions.push({ checkIn: pendingCheckIn, checkOut: r });
+        pendingCheckIn = null;
+      } else {
+        sessions.push({ checkIn: null, checkOut: r });
+      }
+    }
+  }
+  if (pendingCheckIn) sessions.push({ checkIn: pendingCheckIn, checkOut: null });
+  return sessions;
+}
+
 function groupByEmployeeDay(records) {
   const groups = {};
   for (const r of records) {
@@ -256,17 +282,20 @@ function groupByEmployeeDay(records) {
         name: r.profiles?.full_name || "—",
         email: r.profiles?.email || "",
         date: dateKey,
-        checkIn: null,
-        checkOut: null,
+        records: [],
         overtime: false,
       };
     }
     const g = groups[key];
     g.overtime = g.overtime || r.is_overtime;
-    if (r.type === "check_in" && (!g.checkIn || new Date(r.recorded_at) < new Date(g.checkIn.recorded_at))) g.checkIn = r;
-    if (r.type === "check_out" && (!g.checkOut || new Date(r.recorded_at) > new Date(g.checkOut.recorded_at))) g.checkOut = r;
+    g.records.push(r);
   }
-  return Object.values(groups).sort((a, b) => (a.date < b.date ? 1 : -1) || a.name.localeCompare(b.name));
+  const list = Object.values(groups);
+  for (const g of list) {
+    g.records.sort((a, b) => new Date(a.recorded_at) - new Date(b.recorded_at));
+    g.sessions = pairSessionsForDay(g.records);
+  }
+  return list.sort((a, b) => (a.date < b.date ? 1 : -1) || a.name.localeCompare(b.name));
 }
 
 function applyOvertimeFilter(groups) {
@@ -418,12 +447,17 @@ async function renderCalendarView(groupedForFilter) {
       let inner = `<div class="cal-day-num">${cell.date.getDate()}</div>`;
       if (cell.inMonth) {
         if (isHoliday) inner += `<div class="cal-holiday-tag">${t("dash.cal.holidayTag")}</div>`;
-        if (g && g.checkIn && g.checkOut) {
-          inner += `<div class="cal-bar ${g.overtime ? "overtime" : "regular"}">${fmtTime(g.checkIn.recorded_at)}–${fmtTime(g.checkOut.recorded_at)}</div>`;
-        } else if (g && g.checkIn) {
-          inner += `<div class="cal-bar incomplete">${fmtTime(g.checkIn.recorded_at)} ${t("dash.cal.noSalida")}</div>`;
-        } else if (g && g.checkOut) {
-          inner += `<div class="cal-bar incomplete">${t("dash.cal.noEntrada")} ${fmtTime(g.checkOut.recorded_at)}</div>`;
+        if (g && g.sessions.length) {
+          g.sessions.forEach((s) => {
+            const sessionOvertime = (s.checkIn && s.checkIn.is_overtime) || (s.checkOut && s.checkOut.is_overtime);
+            if (s.checkIn && s.checkOut) {
+              inner += `<div class="cal-bar ${sessionOvertime ? "overtime" : "regular"}">${fmtTime(s.checkIn.recorded_at)}–${fmtTime(s.checkOut.recorded_at)}</div>`;
+            } else if (s.checkIn) {
+              inner += `<div class="cal-bar incomplete">${fmtTime(s.checkIn.recorded_at)} ${t("dash.cal.noSalida")}</div>`;
+            } else if (s.checkOut) {
+              inner += `<div class="cal-bar incomplete">${t("dash.cal.noEntrada")} ${fmtTime(s.checkOut.recorded_at)}</div>`;
+            }
+          });
         } else if (onVacation && !isWeekend && !isHoliday) {
           inner += `<div class="cal-vacation-tag">${t("dash.cal.vacationTag")}</div>`;
         }
@@ -843,6 +877,8 @@ function setupFormHandlers() {
     e.target.value = "";
   });
 
+  $("#btn-save-hours").addEventListener("click", handleSaveWorkHours);
+
   $("#btn-add-country").addEventListener("click", async () => {
     const code = $("#add-country-select").value;
     if (!code) return;
@@ -932,6 +968,35 @@ function renderLogo() {
     sidebarLogo.innerHTML = "";
     if (preview) preview.innerHTML = `<span class="hint" style="text-align:center; padding:8px; font-size:12px">${t("dash.company.noLogo")}</span>`;
   }
+}
+
+function renderWorkHours() {
+  $("#work-start").value = (company.work_start || "09:00:00").slice(0, 5);
+  $("#work-end").value = (company.work_end || "17:00:00").slice(0, 5);
+}
+
+async function handleSaveWorkHours() {
+  const alertBox = $("#company-alert");
+  const workStart = $("#work-start").value;
+  const workEnd = $("#work-end").value;
+
+  if (!workStart || !workEnd) {
+    alertBox.textContent = t("dash.company.hoursErrMissing");
+    alertBox.className = "alert error";
+    return;
+  }
+
+  const { error } = await supabase.from("companies").update({ work_start: workStart, work_end: workEnd }).eq("id", company.id);
+  if (error) {
+    alertBox.textContent = t("dash.company.hoursErrSave", { msg: error.message });
+    alertBox.className = "alert error";
+    return;
+  }
+
+  company.work_start = workStart;
+  company.work_end = workEnd;
+  alertBox.textContent = t("dash.company.hoursSaved");
+  alertBox.className = "alert success";
 }
 
 async function handleLogoUpload(file) {

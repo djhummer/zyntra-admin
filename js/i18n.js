@@ -270,6 +270,18 @@ const dict = {
   "dash.company.errUpload": { es: "No se pudo subir: {msg}", en: "Couldn't upload: {msg}", id: "Gagal mengunggah: {msg}" },
   "dash.company.errTooLarge": { es: "La imagen debe pesar menos de 2 MB.", en: "The image must be under 2 MB.", id: "Ukuran gambar harus di bawah 2 MB." },
   "dash.company.errType": { es: "Solo se permiten imágenes (PNG, JPG, WEBP).", en: "Only images are allowed (PNG, JPG, WEBP).", id: "Hanya gambar yang diizinkan (PNG, JPG, WEBP)." },
+  "dash.company.hoursTitle": { es: "Horario laboral", en: "Work hours", id: "Jam kerja" },
+  "dash.company.hoursHint": {
+    es: "Cualquier marcaje fuera de este horario (o cualquier hora, en un día festivo) cuenta automáticamente como overtime.",
+    en: "Any record outside these hours (or any time on a holiday) automatically counts as overtime.",
+    id: "Catatan di luar jam ini (atau kapan saja di hari libur) otomatis dihitung sebagai lembur.",
+  },
+  "dash.company.workStart": { es: "Entrada", en: "Start", id: "Masuk" },
+  "dash.company.workEnd": { es: "Salida", en: "End", id: "Keluar" },
+  "dash.company.hoursSave": { es: "Guardar horario", en: "Save hours", id: "Simpan jam kerja" },
+  "dash.company.hoursSaved": { es: "Horario actualizado.", en: "Hours updated.", id: "Jam kerja diperbarui." },
+  "dash.company.hoursErrMissing": { es: "Completa la hora de entrada y salida.", en: "Fill in both start and end times.", id: "Isi jam masuk dan keluar." },
+  "dash.company.hoursErrSave": { es: "No se pudo guardar: {msg}", en: "Couldn't save: {msg}", id: "Gagal menyimpan: {msg}" },
 
   // ---------------- Super-admin ----------------
   "sa.pageTitle": { es: "Zyntra · Super Admin", en: "Zyntra · Super Admin", id: "Zyntra · Super Admin" },
