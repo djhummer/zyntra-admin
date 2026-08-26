@@ -239,6 +239,26 @@
           <button class="btn btn-primary" id="btn-save-hours" type="button" data-i18n="dash.company.hoursSave">Guardar horario</button>
         </div>
       </div>
+
+      <div style="margin-top:32px; padding-top:28px; border-top:1px solid var(--line)">
+        <h2 class="main-title" style="font-size:16px; margin-bottom:6px" data-i18n="dash.company.scheduleTitle">Recordatorios de marcaje (app móvil)</h2>
+        <p class="hint" style="margin-bottom:16px" data-i18n="dash.company.scheduleHint">
+          Define a qué hora enviar notificaciones de entrada y salida a los empleados en la app.
+        </p>
+        <table class="simple-table">
+          <thead><tr>
+            <th data-i18n="dash.company.schDay">Día</th>
+            <th data-i18n="dash.company.schActive">Día laboral</th>
+            <th data-i18n="dash.company.schIn">Entrada</th>
+            <th data-i18n="dash.company.schOut">Salida</th>
+          </tr></thead>
+          <tbody id="schedule-tbody"><tr><td colspan="4" class="loading" data-i18n="common.loading">Cargando…</td></tr></tbody>
+        </table>
+        <div style="margin-top:16px; display:flex; align-items:center; gap:14px">
+          <button class="btn btn-primary" id="btn-save-schedule" type="button" data-i18n="dash.company.schSave">Guardar recordatorios</button>
+          <span id="schedule-status" class="hint"></span>
+        </div>
+      </div>
     </section>
 
     <!-- ============ VISTA: RESPALDO ============ -->

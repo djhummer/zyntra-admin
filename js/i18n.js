@@ -285,6 +285,28 @@ const dict = {
   "dash.company.hoursErrMissing": { es: "Completa la hora de entrada y salida.", en: "Fill in both start and end times.", id: "Isi jam masuk dan keluar." },
   "dash.company.hoursErrSave": { es: "No se pudo guardar: {msg}", en: "Couldn't save: {msg}", id: "Gagal menyimpan: {msg}" },
 
+  // ---------------- Dashboard: Recordatorios de marcaje ----------------
+  "dash.company.scheduleTitle": { es: "Recordatorios de marcaje (app móvil)", en: "Attendance reminders (mobile app)", id: "Pengingat absen (aplikasi seluler)" },
+  "dash.company.scheduleHint": {
+    es: "Define a qué hora enviar notificaciones de entrada y salida a los empleados en la app. Solo aplica a los días marcados como laborales.",
+    en: "Set when to send check-in and check-out notifications to employees in the app. Only applies to days marked as working days.",
+    id: "Tentukan kapan mengirim notifikasi absen masuk dan keluar ke karyawan di aplikasi. Hanya berlaku untuk hari yang ditandai sebagai hari kerja.",
+  },
+  "dash.company.schDay":    { es: "Día",          en: "Day",          id: "Hari" },
+  "dash.company.schActive": { es: "Día laboral",  en: "Working day",  id: "Hari kerja" },
+  "dash.company.schIn":     { es: "Entrada",      en: "Check-in",     id: "Masuk" },
+  "dash.company.schOut":    { es: "Salida",       en: "Check-out",    id: "Keluar" },
+  "dash.company.schSave":   { es: "Guardar recordatorios", en: "Save reminders", id: "Simpan pengingat" },
+  "dash.company.schSaved":  { es: "Recordatorios guardados.", en: "Reminders saved.", id: "Pengingat disimpan." },
+  "dash.company.schErrTime": { es: "Completa la hora de entrada y salida para {day}.", en: "Fill in check-in and check-out time for {day}.", id: "Isi jam masuk dan keluar untuk {day}." },
+  "dash.company.schMon": { es: "Lunes",     en: "Monday",    id: "Senin" },
+  "dash.company.schTue": { es: "Martes",    en: "Tuesday",   id: "Selasa" },
+  "dash.company.schWed": { es: "Miércoles", en: "Wednesday", id: "Rabu" },
+  "dash.company.schThu": { es: "Jueves",    en: "Thursday",  id: "Kamis" },
+  "dash.company.schFri": { es: "Viernes",   en: "Friday",    id: "Jumat" },
+  "dash.company.schSat": { es: "Sábado",    en: "Saturday",  id: "Sabtu" },
+  "dash.company.schSun": { es: "Domingo",   en: "Sunday",    id: "Minggu" },
+
   // ---------------- Super-admin ----------------
   "sa.pageTitle": { es: "ZyntrAbsen · Super Admin", en: "ZyntrAbsen · Super Admin", id: "ZyntrAbsen · Super Admin" },
   "sa.subtitle": { es: "Panel del dueño del servicio", en: "Service owner panel", id: "Panel pemilik layanan" },

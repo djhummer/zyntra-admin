@@ -5,6 +5,12 @@ let company = null;      // { id, name, code, timezone, country_code }
 let employees = [];      // lista de perfiles role=employee
 let currentRecords = [];
 let countriesMap = {};   // { CO: 'Colombia', ID: 'Indonesia', ... }
+let workSchedules = {};  // { 1: { check_in_time, check_out_time }, … } — 1=Lun…7=Dom
+
+const SCHEDULE_DAY_KEYS = [
+  "dash.company.schMon", "dash.company.schTue", "dash.company.schWed",
+  "dash.company.schThu", "dash.company.schFri", "dash.company.schSat", "dash.company.schSun",
+];
 
 const $ = (sel) => document.querySelector(sel);
 const fmtMoney = (n) => n.toString();
@@ -42,6 +48,7 @@ async function init() {
   renderStatusBanner();
   renderLogo();
   renderWorkHours();
+  await loadWorkSchedules();
 
   const { data: countryRows } = await supabase.from("countries").select("code, name");
   (countryRows || []).forEach((c) => { countriesMap[c.code] = c.name; });
@@ -75,6 +82,7 @@ function setupNav() {
       if (btn.dataset.view === "employees") renderEmployeesTable();
       if (btn.dataset.view === "vacations") { loadVacationsSummary(); loadVacationsLog(); }
       if (btn.dataset.view === "holidays") { loadHolidayCountries(); loadHolidays(); }
+      if (btn.dataset.view === "company") loadWorkSchedules();
     });
   });
   $("#logout-btn").addEventListener("click", async () => {
@@ -899,6 +907,7 @@ function setupFormHandlers() {
   });
 
   $("#btn-save-hours").addEventListener("click", handleSaveWorkHours);
+  $("#btn-save-schedule").addEventListener("click", handleSaveSchedule);
 
   $("#btn-add-country").addEventListener("click", async () => {
     const code = $("#add-country-select").value;
@@ -1088,6 +1097,103 @@ async function handleLogoUpload(file) {
   renderLogo();
   alertBox.textContent = t("dash.company.uploadSuccess");
   alertBox.className = "alert success";
+}
+
+// ---------------------------------------------------------------------
+// 7. Recordatorios de marcaje (work_schedules)
+// ---------------------------------------------------------------------
+async function loadWorkSchedules() {
+  const { data, error } = await supabase
+    .from("work_schedules")
+    .select("day_of_week, check_in_time, check_out_time")
+    .eq("company_id", company.id);
+
+  if (error) { console.error(error); return; }
+
+  workSchedules = {};
+  (data || []).forEach((s) => {
+    workSchedules[s.day_of_week] = {
+      check_in_time: s.check_in_time.slice(0, 5),
+      check_out_time: s.check_out_time.slice(0, 5),
+    };
+  });
+
+  renderScheduleTable();
+}
+
+function renderScheduleTable() {
+  const tbody = $("#schedule-tbody");
+  if (!tbody) return;
+
+  tbody.innerHTML = [1, 2, 3, 4, 5, 6, 7].map((dow) => {
+    const s = workSchedules[dow];
+    const active = !!s;
+    return `
+      <tr>
+        <td>${t(SCHEDULE_DAY_KEYS[dow - 1])}</td>
+        <td style="text-align:center">
+          <input type="checkbox" data-sch-active="${dow}" ${active ? "checked" : ""} />
+        </td>
+        <td><input type="time" id="sch-in-${dow}"  value="${active ? s.check_in_time  : "08:00"}" ${active ? "" : "disabled"} /></td>
+        <td><input type="time" id="sch-out-${dow}" value="${active ? s.check_out_time : "17:00"}" ${active ? "" : "disabled"} /></td>
+      </tr>
+    `;
+  }).join("");
+
+  tbody.querySelectorAll("[data-sch-active]").forEach((cb) => {
+    cb.addEventListener("change", () => {
+      const dow = cb.dataset.schActive;
+      document.getElementById(`sch-in-${dow}`).disabled = !cb.checked;
+      document.getElementById(`sch-out-${dow}`).disabled = !cb.checked;
+    });
+  });
+}
+
+async function handleSaveSchedule() {
+  const alertBox = $("#company-alert");
+  const statusSpan = $("#schedule-status");
+  alertBox.className = "alert";
+  statusSpan.textContent = "";
+
+  const toUpsert = [];
+  const toDelete = [];
+
+  for (let dow = 1; dow <= 7; dow++) {
+    const cb = document.querySelector(`[data-sch-active="${dow}"]`);
+    if (!cb) continue;
+
+    if (cb.checked) {
+      const inTime  = document.getElementById(`sch-in-${dow}`)?.value;
+      const outTime = document.getElementById(`sch-out-${dow}`)?.value;
+      if (!inTime || !outTime) {
+        alertBox.textContent = t("dash.company.schErrTime", { day: t(SCHEDULE_DAY_KEYS[dow - 1]) });
+        alertBox.className = "alert error";
+        return;
+      }
+      toUpsert.push({ company_id: company.id, day_of_week: dow, check_in_time: inTime, check_out_time: outTime });
+    } else {
+      toDelete.push(dow);
+    }
+  }
+
+  const ops = [];
+  if (toUpsert.length) {
+    ops.push(supabase.from("work_schedules").upsert(toUpsert, { onConflict: "company_id,day_of_week" }));
+  }
+  if (toDelete.length) {
+    ops.push(supabase.from("work_schedules").delete().eq("company_id", company.id).in("day_of_week", toDelete));
+  }
+
+  const results = await Promise.all(ops);
+  const firstError = results.find((r) => r.error);
+  if (firstError) {
+    alertBox.textContent = t("dash.company.hoursErrSave", { msg: firstError.error.message });
+    alertBox.className = "alert error";
+    return;
+  }
+
+  await loadWorkSchedules();
+  statusSpan.textContent = t("dash.company.schSaved");
 }
 
 function escapeHtml(str = "") {
