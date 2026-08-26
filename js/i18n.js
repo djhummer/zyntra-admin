@@ -1,5 +1,5 @@
 // ============================================================
-// Sistema de idiomas de Zyntra — Español / English / Indonesia
+// Sistema de idiomas de ZyntrAbsen — Español / English / Indonesia
 // ============================================================
 // Uso en HTML estático:
 //   <span data-i18n="dash.emp.title"></span>          -> textContent
@@ -14,7 +14,7 @@ const dict = {
   "common.logout": { es: "Cerrar sesión", en: "Log out", id: "Keluar" },
 
   // ---------------- Login / Crear empresa (index.html) ----------------
-  "auth.pageTitle": { es: "Zyntra · Acceso administrador", en: "Zyntra · Admin access", id: "Zyntra · Akses admin" },
+  "auth.pageTitle": { es: "ZyntrAbsen · Acceso administrador", en: "ZyntrAbsen · Admin access", id: "ZyntrAbsen · Akses admin" },
   "auth.title": { es: "Panel de administrador", en: "Admin panel", id: "Panel admin" },
   "auth.subtitle": { es: "Consulta las asistencias de tu equipo e imprime el informe mensual.", en: "Check your team's attendance and print the monthly report.", id: "Lihat kehadiran timmu dan cetak laporan bulanan." },
   "auth.tabLogin": { es: "Iniciar sesión", en: "Log in", id: "Masuk" },
@@ -51,7 +51,7 @@ const dict = {
   "auth.errorPasswordShort": { es: "La contraseña debe tener al menos 6 caracteres.", en: "The password must be at least 6 characters.", id: "Kata sandi minimal harus 6 karakter." },
 
   // ---------------- Dashboard: sidebar / general ----------------
-  "dash.pageTitle": { es: "Zyntra · Panel", en: "Zyntra · Panel", id: "Zyntra · Panel" },
+  "dash.pageTitle": { es: "ZyntrAbsen · Panel", en: "ZyntrAbsen · Panel", id: "ZyntrAbsen · Panel" },
   "dash.navReport": { es: "Informe de asistencia", en: "Attendance report", id: "Laporan kehadiran" },
   "dash.navEmployees": { es: "Empleados", en: "Employees", id: "Karyawan" },
   "dash.navVacations": { es: "Vacaciones", en: "Vacation", id: "Cuti" },
@@ -248,9 +248,9 @@ const dict = {
   // ---------------- Dashboard: Respaldo ----------------
   "dash.backup.title": { es: "Respaldo de datos", en: "Data backup", id: "Cadangan data" },
   "dash.backup.hint": {
-    es: "Descarga una copia completa de los datos de tu empresa (empleados, asistencias, festivos propios y vacaciones) en un archivo JSON. Guárdalo en un lugar seguro (Google Drive, disco externo) por cualquier eventualidad. Puedes hacerlo tan seguido como quieras — no afecta los datos en Zyntra.",
-    en: "Download a complete copy of your company's data (employees, attendance, custom holidays, and vacations) as a JSON file. Keep it somewhere safe (Google Drive, external drive) just in case. You can do this as often as you like — it doesn't affect the data in Zyntra.",
-    id: "Unduh salinan lengkap data perusahaanmu (karyawan, kehadiran, hari libur khusus, dan cuti) dalam file JSON. Simpan di tempat aman (Google Drive, hard disk eksternal) untuk berjaga-jaga. Kamu bisa melakukannya sesering mungkin — tidak memengaruhi data di Zyntra.",
+    es: "Descarga una copia completa de los datos de tu empresa (empleados, asistencias, festivos propios y vacaciones) en un archivo JSON. Guárdalo en un lugar seguro (Google Drive, disco externo) por cualquier eventualidad. Puedes hacerlo tan seguido como quieras — no afecta los datos en ZyntrAbsen.",
+    en: "Download a complete copy of your company's data (employees, attendance, custom holidays, and vacations) as a JSON file. Keep it somewhere safe (Google Drive, external drive) just in case. You can do this as often as you like — it doesn't affect the data in ZyntrAbsen.",
+    id: "Unduh salinan lengkap data perusahaanmu (karyawan, kehadiran, hari libur khusus, dan cuti) dalam file JSON. Simpan di tempat aman (Google Drive, hard disk eksternal) untuk berjaga-jaga. Kamu bisa melakukannya sesering mungkin — tidak memengaruhi data di ZyntrAbsen.",
   },
   "dash.backup.button": { es: "Descargar respaldo completo", en: "Download full backup", id: "Unduh cadangan lengkap" },
   "dash.backup.generating": { es: "Generando respaldo…", en: "Generating backup…", id: "Membuat cadangan…" },
@@ -286,13 +286,13 @@ const dict = {
   "dash.company.hoursErrSave": { es: "No se pudo guardar: {msg}", en: "Couldn't save: {msg}", id: "Gagal menyimpan: {msg}" },
 
   // ---------------- Super-admin ----------------
-  "sa.pageTitle": { es: "Zyntra · Super Admin", en: "Zyntra · Super Admin", id: "Zyntra · Super Admin" },
+  "sa.pageTitle": { es: "ZyntrAbsen · Super Admin", en: "ZyntrAbsen · Super Admin", id: "ZyntrAbsen · Super Admin" },
   "sa.subtitle": { es: "Panel del dueño del servicio", en: "Service owner panel", id: "Panel pemilik layanan" },
   "sa.title": { es: "Empresas registradas", en: "Registered companies", id: "Perusahaan terdaftar" },
   "sa.hint": {
-    es: "Aquí apruebas o suspendes el acceso de cada empresa que contrata Zyntra. Mientras una empresa está pendiente, su administrador puede entrar a configurar todo, pero los empleados no pueden marcar entrada/salida hasta que la apruebes. No tienes acceso a las asistencias, ubicaciones ni festivos de ninguna empresa — solo a este panel de cuentas.",
-    en: "Here you approve or suspend access for each company that hires Zyntra. While a company is pending, its admin can log in to set everything up, but employees can't clock in/out until you approve it. You don't have access to any company's attendance, locations, or holidays — only to this account panel.",
-    id: "Di sini kamu menyetujui atau menangguhkan akses tiap perusahaan yang menggunakan Zyntra. Selama perusahaan berstatus menunggu, adminnya bisa masuk untuk mengatur semuanya, tapi karyawan tidak bisa absen masuk/keluar sampai kamu menyetujuinya. Kamu tidak punya akses ke data kehadiran, lokasi, atau hari libur perusahaan mana pun — hanya ke panel akun ini.",
+    es: "Aquí apruebas o suspendes el acceso de cada empresa que contrata ZyntrAbsen. Mientras una empresa está pendiente, su administrador puede entrar a configurar todo, pero los empleados no pueden marcar entrada/salida hasta que la apruebes. No tienes acceso a las asistencias, ubicaciones ni festivos de ninguna empresa — solo a este panel de cuentas.",
+    en: "Here you approve or suspend access for each company that hires ZyntrAbsen. While a company is pending, its admin can log in to set everything up, but employees can't clock in/out until you approve it. You don't have access to any company's attendance, locations, or holidays — only to this account panel.",
+    id: "Di sini kamu menyetujui atau menangguhkan akses tiap perusahaan yang menggunakan ZyntrAbsen. Selama perusahaan berstatus menunggu, adminnya bisa masuk untuk mengatur semuanya, tapi karyawan tidak bisa absen masuk/keluar sampai kamu menyetujuinya. Kamu tidak punya akses ke data kehadiran, lokasi, atau hari libur perusahaan mana pun — hanya ke panel akun ini.",
   },
   "sa.summaryTotal": { es: "Empresas totales", en: "Total companies", id: "Total perusahaan" },
   "sa.summaryPending": { es: "Pendientes de aprobar", en: "Pending approval", id: "Menunggu persetujuan" },
@@ -318,12 +318,12 @@ const dict = {
   "sa.errUpdate": { es: "No se pudo actualizar: {msg}", en: "Couldn't update: {msg}", id: "Gagal memperbarui: {msg}" },
 
   // ---------------- Super-admin-setup ----------------
-  "sas.pageTitle": { es: "Zyntra · Configuración inicial", en: "Zyntra · Initial setup", id: "Zyntra · Pengaturan awal" },
+  "sas.pageTitle": { es: "ZyntrAbsen · Configuración inicial", en: "ZyntrAbsen · Initial setup", id: "ZyntrAbsen · Pengaturan awal" },
   "sas.title": { es: "Configuración inicial", en: "Initial setup", id: "Pengaturan awal" },
   "sas.subtitleHtml": {
-    es: "Crea la cuenta del <strong>dueño del servicio</strong> (super-admin). Esta página solo funciona una vez — úsala tú, no la compartas con las empresas que contraten Zyntra. Ellas se registran desde <a href=\"index.html\">la página normal</a>.",
-    en: "Create the <strong>service owner</strong> account (super-admin). This page only works once — use it yourself, don't share it with companies that hire Zyntra. They register from <a href=\"index.html\">the regular page</a>.",
-    id: "Buat akun <strong>pemilik layanan</strong> (super-admin). Halaman ini hanya berfungsi sekali — gunakan sendiri, jangan bagikan ke perusahaan yang memakai Zyntra. Mereka mendaftar lewat <a href=\"index.html\">halaman biasa</a>.",
+    es: "Crea la cuenta del <strong>dueño del servicio</strong> (super-admin). Esta página solo funciona una vez — úsala tú, no la compartas con las empresas que contraten ZyntrAbsen. Ellas se registran desde <a href=\"index.html\">la página normal</a>.",
+    en: "Create the <strong>service owner</strong> account (super-admin). This page only works once — use it yourself, don't share it with companies that hire ZyntrAbsen. They register from <a href=\"index.html\">the regular page</a>.",
+    id: "Buat akun <strong>pemilik layanan</strong> (super-admin). Halaman ini hanya berfungsi sekali — gunakan sendiri, jangan bagikan ke perusahaan yang memakai ZyntrAbsen. Mereka mendaftar lewat <a href=\"index.html\">halaman biasa</a>.",
   },
   "sas.formName": { es: "Tu nombre", en: "Your name", id: "Nama kamu" },
   "sas.formEmail": { es: "Correo", en: "Email", id: "Email" },

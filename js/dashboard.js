@@ -831,7 +831,7 @@ async function downloadBackup() {
   const url = URL.createObjectURL(blob);
   const a = document.createElement("a");
   a.href = url;
-  a.download = `zyntra-respaldo-${company.code}-${new Date().toISOString().slice(0, 10)}.json`;
+  a.download = `zyntrabsen-respaldo-${company.code}-${new Date().toISOString().slice(0, 10)}.json`;
   a.click();
   URL.revokeObjectURL(url);
 
