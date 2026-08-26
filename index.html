@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title data-i18n="auth.pageTitle">Zyntra · Acceso administrador</title>
+<link rel="stylesheet" href="css/styles.css" />
+</head>
+<body>
+
+<div class="auth-shell">
+  <div class="auth-card" style="position:relative">
+    <div id="lang-switcher-container" class="lang-switcher-corner"></div>
+    <div class="auth-brand">⏱ ZYNTRA</div>
+    <h1 class="auth-title" data-i18n="auth.title">Panel de administrador</h1>
+    <p class="auth-subtitle" data-i18n="auth.subtitle">Consulta las asistencias de tu equipo e imprime el informe mensual.</p>
+
+    <div class="tabs">
+      <div class="tab active" data-tab="login" data-i18n="auth.tabLogin">Iniciar sesión</div>
+      <div class="tab" data-tab="signup" data-i18n="auth.tabSignup">Crear empresa</div>
+    </div>
+
+    <div id="alert" class="alert"></div>
+
+    <!-- LOGIN -->
+    <form id="form-login" class="form-panel active">
+      <div class="field">
+        <label for="login-email" data-i18n="auth.loginEmail">Correo</label>
+        <input id="login-email" type="email" required autocomplete="email" />
+      </div>
+      <div class="field">
+        <label for="login-password" data-i18n="auth.loginPassword">Contraseña</label>
+        <input id="login-password" type="password" required autocomplete="current-password" />
+      </div>
+      <button class="btn btn-primary" type="submit" style="width:100%" data-i18n="auth.loginButton">Ingresar</button>
+    </form>
+
+    <!-- SIGNUP (crear empresa) -->
+    <form id="form-signup" class="form-panel">
+      <div class="field">
+        <label for="signup-company" data-i18n="auth.signupCompanyName">Nombre de la empresa</label>
+        <input id="signup-company" type="text" required />
+      </div>
+      <div class="field">
+        <label for="signup-country" data-i18n="auth.signupCountry">País base</label>
+        <select id="signup-country" required>
+          <option value="" data-i18n="auth.signupCountryLoading">Cargando países…</option>
+        </select>
+      </div>
+      <div class="field">
+        <label for="signup-name" data-i18n="auth.signupYourName">Tu nombre</label>
+        <input id="signup-name" type="text" required />
+      </div>
+      <div class="field">
+        <label for="signup-email" data-i18n="auth.signupEmail">Correo</label>
+        <input id="signup-email" type="email" required autocomplete="email" />
+      </div>
+      <div class="field">
+        <label for="signup-password" data-i18n="auth.signupPassword">Contraseña</label>
+        <input id="signup-password" type="password" required minlength="6" autocomplete="new-password" />
+      </div>
+      <button class="btn btn-stamp" type="submit" style="width:100%" data-i18n="auth.signupButton">Crear empresa y cuenta admin</button>
+      <p class="hint" data-i18n="auth.signupHint">Se generará un código único que tus empleados usarán para registrarse en la app móvil.</p>
+
+      <div id="code-result" class="code-result">
+        <span data-i18n="auth.codeResultLabel">Código de invitación de tu empresa:</span><br />
+        <span class="code" id="code-value">------</span>
+        <p class="hint" style="margin-top:10px" data-i18n-html="auth.codeResultHint">Guárdalo y compártelo con tus empleados. Ya puedes <a href="dashboard.html">ir al panel</a>.</p>
+      </div>
+    </form>
+  </div>
+</div>
+
+<script src="js/config.js"></script>
+<script type="module" src="js/auth.js"></script>
+</body>
+</html>

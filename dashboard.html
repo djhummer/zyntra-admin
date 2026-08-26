@@ -1,0 +1,246 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title data-i18n="dash.pageTitle">Zyntra · Panel</title>
+<link rel="stylesheet" href="css/styles.css" />
+</head>
+<body>
+
+<div class="app-shell">
+  <aside class="sidebar">
+    <div class="sidebar-brand">⏱ ZYNTRA</div>
+    <div id="sidebar-logo"></div>
+    <div class="sidebar-company" id="company-name">Cargando…</div>
+    <nav class="sidebar-nav">
+      <button data-view="report" class="active" data-i18n="dash.navReport">Informe de asistencia</button>
+      <button data-view="employees" data-i18n="dash.navEmployees">Empleados</button>
+      <button data-view="vacations" data-i18n="dash.navVacations">Vacaciones</button>
+      <button data-view="holidays" data-i18n="dash.navHolidays">Festivos</button>
+      <button data-view="company" data-i18n="dash.navCompany">Empresa</button>
+      <button data-view="backup" data-i18n="dash.navBackup">Respaldo</button>
+      <button id="logout-btn" data-i18n="common.logout">Cerrar sesión</button>
+    </nav>
+    <div class="sidebar-code">
+      <span data-i18n="dash.inviteCode">Código de invitación</span>
+      <div class="code" id="company-code">------</div>
+      <div id="lang-switcher-container"></div>
+    </div>
+  </aside>
+
+  <main class="main">
+    <div id="status-banner"></div>
+
+    <!-- ============ VISTA: INFORME ============ -->
+    <section id="view-report">
+      <div class="main-header">
+        <h1 class="main-title" data-i18n="dash.report.title">Informe de asistencia</h1>
+        <div class="main-actions">
+          <button class="btn btn-ghost no-print" id="btn-export-csv" data-i18n="dash.report.exportCsv">Exportar CSV</button>
+          <button class="btn btn-stamp no-print" id="btn-print" data-i18n="dash.report.print">Imprimir informe</button>
+        </div>
+      </div>
+
+      <div class="toolbar no-print">
+        <div class="field">
+          <label for="filter-month" data-i18n="dash.report.month">Mes</label>
+          <div class="month-nav">
+            <button type="button" class="btn btn-ghost btn-icon" id="btn-prev-month">‹</button>
+            <input type="month" id="filter-month" />
+            <button type="button" class="btn btn-ghost btn-icon" id="btn-next-month">›</button>
+          </div>
+        </div>
+        <div class="field">
+          <label for="filter-employee" data-i18n="dash.report.employee">Empleado</label>
+          <select id="filter-employee"><option value="" data-i18n="dash.report.employeeAll">Todos</option></select>
+        </div>
+        <div class="field">
+          <label for="filter-overtime" data-i18n="dash.report.show">Mostrar</label>
+          <select id="filter-overtime">
+            <option value="all" data-i18n="dash.report.showAll">Todos los registros</option>
+            <option value="overtime" data-i18n="dash.report.showOvertimeOnly">Solo overtime</option>
+            <option value="regular" data-i18n="dash.report.showRegularOnly">Solo horario regular</option>
+          </select>
+        </div>
+        <div class="field">
+          <label for="filter-view" data-i18n="dash.report.view">Vista</label>
+          <select id="filter-view">
+            <option value="list" data-i18n="dash.report.viewList">Lista</option>
+            <option value="calendar" data-i18n="dash.report.viewCalendar">Calendario</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="summary-row" id="summary-row"></div>
+
+      <div id="report-list" class="ticket-list">
+        <p class="loading" data-i18n="dash.report.loadingAttendance">Cargando asistencias…</p>
+      </div>
+
+      <div id="report-calendar" style="display:none"></div>
+    </section>
+
+    <!-- ============ VISTA: EMPLEADOS ============ -->
+    <section id="view-employees" style="display:none">
+      <div class="main-header">
+        <h1 class="main-title" data-i18n="dash.emp.title">Empleados</h1>
+      </div>
+
+      <p class="hint" id="employees-hint" style="margin-bottom:16px"></p>
+
+      <div id="employee-alert" class="alert"></div>
+
+      <form id="form-add-employee" class="inline-form">
+        <div class="field">
+          <label for="new-emp-name" data-i18n="dash.emp.formName">Nombre completo</label>
+          <input id="new-emp-name" type="text" required />
+        </div>
+        <div class="field">
+          <label for="new-emp-email" data-i18n="dash.emp.formEmail">Correo</label>
+          <input id="new-emp-email" type="email" required />
+        </div>
+        <div class="field">
+          <label for="new-emp-password" data-i18n="dash.emp.formPassword">Contraseña provisional</label>
+          <input id="new-emp-password" type="text" minlength="6" required data-i18n-placeholder="dash.emp.formPasswordPlaceholder" placeholder="Mínimo 6 caracteres" />
+        </div>
+        <div class="field">
+          <label for="new-emp-hire-date" data-i18n="dash.emp.formHireDate">Fecha de ingreso</label>
+          <input id="new-emp-hire-date" type="date" required />
+        </div>
+        <button class="btn btn-stamp" type="submit" data-i18n="dash.emp.formSubmit">Crear cuenta</button>
+      </form>
+
+      <table class="simple-table">
+        <thead><tr>
+          <th data-i18n="dash.emp.thName">Nombre</th><th data-i18n="dash.emp.thEmail">Correo</th><th data-i18n="dash.emp.thStatus">Estado</th><th data-i18n="dash.emp.thHire">Ingreso</th><th data-i18n="dash.emp.thTermination">Salida</th><th></th>
+        </tr></thead>
+        <tbody id="employees-tbody"><tr><td colspan="6" class="loading" data-i18n="common.loading">Cargando…</td></tr></tbody>
+      </table>
+    </section>
+
+    <!-- ============ VISTA: VACACIONES ============ -->
+    <section id="view-vacations" style="display:none">
+      <div class="main-header">
+        <h1 class="main-title" data-i18n="dash.vac.title">Vacaciones</h1>
+        <div class="field" style="margin:0">
+          <label for="vac-year" data-i18n="dash.vac.year">Año</label>
+          <input type="number" id="vac-year" style="width:100px" />
+        </div>
+      </div>
+      <p class="hint" style="margin-bottom:16px" data-i18n="dash.vac.hint">El saldo se calcula como los días asignados al año menos los días ya registrados como tomados en ese año. Los días asignados son editables por empleado.</p>
+
+      <table class="simple-table" style="margin-bottom:28px">
+        <thead><tr><th data-i18n="dash.vac.thEmployee">Empleado</th><th data-i18n="dash.vac.thAllowance">Asignados/año</th><th data-i18n="dash.vac.thTaken">Tomados este año</th><th data-i18n="dash.vac.thRemaining">Restantes</th></tr></thead>
+        <tbody id="vacations-summary-tbody"><tr><td colspan="4" class="loading" data-i18n="common.loading">Cargando…</td></tr></tbody>
+      </table>
+
+      <h1 class="main-title" style="font-size:16px; margin-bottom:12px" data-i18n="dash.vac.registerTitle">Registrar un período tomado</h1>
+      <form id="form-vacation" class="inline-form">
+        <div class="field">
+          <label for="vac-employee" data-i18n="dash.vac.formEmployee">Empleado</label>
+          <select id="vac-employee" required></select>
+        </div>
+        <div class="field">
+          <label for="vac-start" data-i18n="dash.vac.formStart">Inicio</label>
+          <input type="date" id="vac-start" required />
+        </div>
+        <div class="field">
+          <label for="vac-end" data-i18n="dash.vac.formEnd">Fin</label>
+          <input type="date" id="vac-end" required />
+        </div>
+        <div class="field">
+          <label for="vac-days" data-i18n="dash.vac.formDays">Días</label>
+          <input type="number" id="vac-days" min="1" style="width:80px" required />
+        </div>
+        <div class="field" style="flex:1">
+          <label for="vac-note" data-i18n="dash.vac.formNote">Nota (opcional)</label>
+          <input type="text" id="vac-note" data-i18n-placeholder="dash.vac.formNotePlaceholder" placeholder="Ej. Vacaciones de fin de año" />
+        </div>
+        <button class="btn btn-primary" type="submit" data-i18n="dash.vac.formSubmit">Registrar</button>
+      </form>
+
+      <table class="simple-table">
+        <thead><tr><th data-i18n="dash.vac.thEmployee">Empleado</th><th data-i18n="dash.vac.thPeriod">Período</th><th data-i18n="dash.vac.thDays">Días</th><th data-i18n="dash.vac.thNote">Nota</th><th></th></tr></thead>
+        <tbody id="vacations-log-tbody"><tr><td colspan="5" class="loading" data-i18n="common.loading">Cargando…</td></tr></tbody>
+      </table>
+    </section>
+
+    <!-- ============ VISTA: FESTIVOS ============ -->
+    <section id="view-holidays" style="display:none">
+      <div class="main-header">
+        <h1 class="main-title" data-i18n="dash.hol.title">Festivos</h1>
+      </div>
+      <p class="hint" style="margin-bottom:16px" data-i18n="dash.hol.hint">Los festivos nacionales del país de tu empresa ya están precargados. Agrega aquí fechas especiales propias de tu empresa (cierres, puentes internos, etc). Cualquier día listado aquí cuenta como overtime a cualquier hora.</p>
+
+      <div class="toolbar">
+        <div class="field" style="flex:1 1 100%">
+          <label data-i18n="dash.hol.countriesLabel">Países cuyos festivos nacionales aplican</label>
+          <div id="holiday-countries-list" style="display:flex; gap:8px; flex-wrap:wrap; margin-top:8px;"></div>
+        </div>
+        <div class="field">
+          <label for="add-country-select" data-i18n="dash.hol.addCountryLabel">Agregar otro país (ej. embajadas)</label>
+          <select id="add-country-select"><option value="" data-i18n="dash.hol.chooseCountry">Elegir país…</option></select>
+        </div>
+        <button class="btn btn-primary" id="btn-add-country" type="button" data-i18n="dash.hol.addCountryBtn">Agregar país</button>
+      </div>
+      <form id="form-holiday" class="inline-form">
+        <div class="field">
+          <label for="holiday-date" data-i18n="dash.hol.formDate">Fecha</label>
+          <input type="date" id="holiday-date" required />
+        </div>
+        <div class="field" style="flex:1">
+          <label for="holiday-name" data-i18n="dash.hol.formName">Nombre</label>
+          <input type="text" id="holiday-name" data-i18n-placeholder="dash.hol.formNamePlaceholder" placeholder="Ej. Aniversario de la empresa" required />
+        </div>
+        <button class="btn btn-primary" type="submit" data-i18n="dash.hol.formSubmit">Agregar festivo</button>
+      </form>
+      <table class="simple-table">
+        <thead><tr><th data-i18n="dash.hol.thDate">Fecha</th><th data-i18n="dash.hol.thName">Nombre</th><th data-i18n="dash.hol.thOrigin">Origen</th><th></th></tr></thead>
+        <tbody id="holidays-tbody"><tr><td colspan="4" class="loading" data-i18n="common.loading">Cargando…</td></tr></tbody>
+      </table>
+    </section>
+
+    <!-- ============ VISTA: EMPRESA ============ -->
+    <section id="view-company" style="display:none">
+      <div class="main-header">
+        <h1 class="main-title" data-i18n="dash.company.title">Configuración de la empresa</h1>
+      </div>
+      <p class="hint" style="margin-bottom:16px" data-i18n="dash.company.logoHint">
+        Se muestra en la app móvil de tus empleados. Recomendado: imagen cuadrada, fondo blanco o transparente, menos de 2 MB.
+      </p>
+
+      <div id="company-alert" class="alert"></div>
+
+      <div style="display:flex; align-items:center; gap:24px; margin-top:8px">
+        <div id="logo-preview" style="width:120px; height:120px; border-radius:12px; border:1px solid var(--line); background:var(--paper-card); display:flex; align-items:center; justify-content:center; overflow:hidden; flex-shrink:0">
+          <span class="hint" data-i18n="dash.company.noLogo" style="text-align:center; padding:8px; font-size:12px">Todavía no has subido un logo.</span>
+        </div>
+        <div>
+          <input type="file" id="logo-file-input" accept="image/png,image/jpeg,image/webp" style="display:none" />
+          <button class="btn btn-stamp" id="btn-upload-logo" type="button" data-i18n="dash.company.uploadButton">Subir logo</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============ VISTA: RESPALDO ============ -->
+    <section id="view-backup" style="display:none">
+      <div class="main-header">
+        <h1 class="main-title" data-i18n="dash.backup.title">Respaldo de datos</h1>
+      </div>
+      <p class="hint" style="margin-bottom:16px" data-i18n="dash.backup.hint">
+        Descarga una copia completa de los datos de tu empresa (empleados, asistencias, festivos propios
+        y vacaciones) en un archivo JSON. Guárdalo en un lugar seguro (Google Drive, disco externo) por
+        cualquier eventualidad. Puedes hacerlo tan seguido como quieras — no afecta los datos en Zyntra.
+      </p>
+      <button class="btn btn-stamp" id="btn-download-backup" data-i18n="dash.backup.button">Descargar respaldo completo</button>
+      <p id="backup-status" class="hint" style="margin-top:14px"></p>
+    </section>
+
+  </main>
+</div>
+
+<script src="js/config.js"></script>
+<script type="module" src="js/dashboard.js"></script>
+</body>
+</html>

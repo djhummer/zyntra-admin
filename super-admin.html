@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title data-i18n="sa.pageTitle">Zyntra · Super Admin</title>
+<link rel="stylesheet" href="css/styles.css" />
+</head>
+<body>
+
+<div class="app-shell">
+  <aside class="sidebar">
+    <div class="sidebar-brand">⏱ ZYNTRA</div>
+    <div class="sidebar-company" data-i18n="sa.subtitle">Panel del dueño del servicio</div>
+    <nav class="sidebar-nav">
+      <button id="logout-btn" data-i18n="common.logout">Cerrar sesión</button>
+    </nav>
+    <div class="sidebar-code">
+      <div id="lang-switcher-container"></div>
+    </div>
+  </aside>
+
+  <main class="main">
+    <div class="main-header">
+      <h1 class="main-title" data-i18n="sa.title">Empresas registradas</h1>
+    </div>
+    <p class="hint" style="margin-bottom:20px" data-i18n="sa.hint">
+      Aquí apruebas o suspendes el acceso de cada empresa que contrata Zyntra. Mientras una empresa
+      está pendiente, su administrador puede entrar a configurar todo, pero los
+      empleados no pueden marcar entrada/salida hasta que la apruebes. No tienes acceso a las
+      asistencias, ubicaciones ni festivos de ninguna empresa — solo a este panel de cuentas.
+    </p>
+
+    <div class="summary-row" id="summary-row"></div>
+
+    <div id="companies-list"><p class="loading" data-i18n="common.loading">Cargando…</p></div>
+  </main>
+</div>
+
+<script src="js/config.js"></script>
+<script type="module" src="js/super-admin.js"></script>
+</body>
+</html>

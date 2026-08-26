@@ -1,0 +1,410 @@
+@import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600;700&family=IBM+Plex+Sans:wght@400;500;600;700&display=swap');
+
+:root {
+  --ink: #1C2333;
+  --ink-soft: #2A3349;
+  --paper: #FAF7F0;
+  --paper-card: #FFFFFF;
+  --stamp: #C1440E;
+  --stamp-soft: #F3DCCF;
+  --ok: #3A7D44;
+  --ok-soft: #DCEBDD;
+  --line: #E4DFD3;
+  --text: #232323;
+  --text-muted: #6B675E;
+  --text-on-ink: #F5F1E8;
+  --font-display: 'IBM Plex Mono', monospace;
+  --font-body: 'IBM Plex Sans', sans-serif;
+  --radius: 3px;
+}
+
+* { box-sizing: border-box; }
+
+html, body {
+  margin: 0;
+  padding: 0;
+  background: var(--paper);
+  color: var(--text);
+  font-family: var(--font-body);
+  font-size: 15px;
+  line-height: 1.5;
+}
+
+button, input, select {
+  font-family: inherit;
+  font-size: inherit;
+}
+
+a { color: var(--stamp); }
+
+/* ---------- Botones ---------- */
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 10px 18px;
+  border-radius: var(--radius);
+  border: 1px solid transparent;
+  font-weight: 600;
+  cursor: pointer;
+  transition: transform .08s ease, opacity .15s ease;
+}
+.btn:active { transform: scale(0.98); }
+.btn-primary { background: var(--ink); color: var(--text-on-ink); }
+.btn-primary:hover { background: var(--ink-soft); }
+.btn-stamp { background: var(--stamp); color: #fff; }
+.btn-stamp:hover { opacity: .92; }
+.btn-ghost { background: transparent; color: var(--ink); border-color: var(--line); }
+.btn-ghost:hover { background: #F0EBDD; }
+.btn-icon { padding: 10px 14px; }
+.btn:disabled { opacity: .5; cursor: not-allowed; }
+
+/* ---------- Pantalla de acceso (login/registro) ---------- */
+.auth-shell {
+  min-height: 100vh;
+  display: grid;
+  grid-template-columns: 1fr;
+  place-items: center;
+  padding: 24px;
+}
+.auth-card {
+  width: 100%;
+  max-width: 420px;
+  background: var(--paper-card);
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  padding: 36px 32px;
+}
+.auth-brand {
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: 13px;
+  letter-spacing: .12em;
+  text-transform: uppercase;
+  color: var(--stamp);
+  margin-bottom: 6px;
+}
+.auth-title {
+  font-size: 24px;
+  font-weight: 700;
+  margin: 0 0 4px;
+  color: var(--ink);
+}
+.auth-subtitle {
+  color: var(--text-muted);
+  margin: 0 0 24px;
+  font-size: 14px;
+}
+.tabs {
+  display: flex;
+  border-bottom: 1px solid var(--line);
+  margin-bottom: 20px;
+}
+.tab {
+  flex: 1;
+  text-align: center;
+  padding: 10px 0;
+  cursor: pointer;
+  color: var(--text-muted);
+  font-weight: 600;
+  border-bottom: 2px solid transparent;
+  margin-bottom: -1px;
+}
+.tab.active { color: var(--ink); border-bottom-color: var(--stamp); }
+.field { margin-bottom: 16px; }
+.field label {
+  display: block;
+  font-size: 12px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: .05em;
+  color: var(--text-muted);
+  margin-bottom: 6px;
+}
+.field input {
+  width: 100%;
+  padding: 11px 12px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  background: var(--paper);
+}
+.field input:focus {
+  outline: 2px solid var(--stamp);
+  outline-offset: 1px;
+}
+.form-panel { display: none; }
+.form-panel.active { display: block; }
+.hint { font-size: 13px; color: var(--text-muted); margin-top: 14px; }
+.alert {
+  padding: 10px 12px;
+  border-radius: var(--radius);
+  font-size: 13px;
+  margin-bottom: 16px;
+  display: none;
+}
+.alert.error { display: block; background: var(--stamp-soft); color: #8A2E09; }
+.alert.success { display: block; background: var(--ok-soft); color: #205228; }
+.code-result {
+  margin-top: 18px;
+  padding: 16px;
+  border: 1px dashed var(--stamp);
+  border-radius: var(--radius);
+  background: var(--stamp-soft);
+  display: none;
+}
+.code-result.show { display: block; }
+.code-result .code {
+  font-family: var(--font-display);
+  font-size: 26px;
+  font-weight: 700;
+  letter-spacing: .1em;
+  color: var(--ink);
+}
+
+/* ---------- Layout del dashboard ---------- */
+.app-shell { display: grid; grid-template-columns: 220px 1fr; min-height: 100vh; }
+.sidebar {
+  background: var(--ink);
+  color: var(--text-on-ink);
+  padding: 24px 18px;
+  display: flex;
+  flex-direction: column;
+}
+.sidebar-brand { font-family: var(--font-display); font-weight: 700; font-size: 13px; letter-spacing: .1em; text-transform: uppercase; color: var(--stamp); }
+.sidebar-logo-img { width: 44px; height: 44px; border-radius: 8px; object-fit: cover; margin-top: 10px; background: #fff; }
+.sidebar-company { font-weight: 600; margin-top: 4px; margin-bottom: 28px; font-size: 15px; }
+.sidebar-nav { display: flex; flex-direction: column; gap: 4px; flex: 1; }
+.sidebar-nav button {
+  text-align: left;
+  background: transparent;
+  border: none;
+  color: #C7CCDB;
+  padding: 10px 12px;
+  border-radius: var(--radius);
+  cursor: pointer;
+  font-weight: 500;
+}
+.sidebar-nav button:hover { background: var(--ink-soft); color: #fff; }
+.sidebar-nav button.active { background: var(--ink-soft); color: #fff; box-shadow: inset 3px 0 0 var(--stamp); }
+.sidebar-code {
+  margin-top: auto;
+  padding-top: 16px;
+  border-top: 1px solid var(--ink-soft);
+  font-size: 12px;
+  color: #9AA1B5;
+}
+.sidebar-code .code { font-family: var(--font-display); font-size: 18px; color: var(--text-on-ink); letter-spacing: .08em; }
+
+.main { padding: 32px 40px; max-width: 1200px; }
+.main-header { display: flex; align-items: baseline; justify-content: space-between; margin-bottom: 24px; flex-wrap: wrap; gap: 12px; }
+.main-title { font-size: 22px; font-weight: 700; color: var(--ink); margin: 0; }
+.main-actions { display: flex; gap: 10px; }
+
+.toolbar {
+  display: flex;
+  gap: 14px;
+  flex-wrap: wrap;
+  align-items: end;
+  background: var(--paper-card);
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  padding: 16px;
+  margin-bottom: 24px;
+}
+.toolbar .field { margin-bottom: 0; min-width: 170px; }
+.toolbar select { width: 100%; padding: 10px 12px; border: 1px solid var(--line); border-radius: var(--radius); background: var(--paper); }
+.month-nav { display: flex; align-items: center; gap: 6px; }
+.month-nav input[type="month"] { flex: 1; padding: 10px 12px; border: 1px solid var(--line); border-radius: var(--radius); background: var(--paper); }
+
+.summary-row { display: flex; gap: 14px; margin-bottom: 24px; flex-wrap: wrap; }
+.summary-card {
+  background: var(--paper-card);
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  padding: 16px 20px;
+  min-width: 150px;
+}
+.summary-card .label { font-size: 12px; text-transform: uppercase; letter-spacing: .05em; color: var(--text-muted); font-weight: 600; }
+.summary-card .value { font-family: var(--font-display); font-size: 26px; font-weight: 700; color: var(--ink); margin-top: 4px; }
+.summary-card.stamp .value { color: var(--stamp); }
+
+/* ---------- Ticket / ponchadora ---------- */
+.ticket-list { display: flex; flex-direction: column; gap: 10px; }
+.ticket {
+  position: relative;
+  background: var(--paper-card);
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  padding: 16px 20px;
+  display: grid;
+  grid-template-columns: 130px 1fr 100px 100px 140px 90px;
+  gap: 16px;
+  align-items: center;
+  overflow: hidden;
+}
+.ticket::before {
+  content: "";
+  position: absolute;
+  left: 108px;
+  top: 0;
+  bottom: 0;
+  border-left: 1.5px dashed var(--line);
+}
+.ticket .t-date { font-family: var(--font-display); font-size: 13px; color: var(--text-muted); }
+.ticket .t-name { font-weight: 600; color: var(--ink); }
+.ticket .t-name small { display: block; font-weight: 400; color: var(--text-muted); font-size: 12px; }
+.ticket .t-time { font-family: var(--font-display); font-size: 15px; }
+.ticket .t-time .lbl { display: block; font-size: 10px; text-transform: uppercase; color: var(--text-muted); font-family: var(--font-body); }
+.ticket .t-loc a { font-size: 12px; text-decoration: none; }
+.ticket .t-badge {
+  justify-self: end;
+  font-family: var(--font-display);
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: .06em;
+  padding: 5px 10px;
+  border-radius: 100px;
+  text-transform: uppercase;
+}
+.t-badge.ok { background: var(--ok-soft); color: var(--ok); }
+.t-badge.overtime {
+  background: transparent;
+  color: var(--stamp);
+  border: 2px solid var(--stamp);
+  transform: rotate(-4deg);
+}
+
+/* Ticket de un solo registro (vista de Lista, ya no unifica por día) */
+.ticket-single {
+  grid-template-columns: 130px 1fr 160px 1fr 90px;
+}
+.ticket-single::before { left: 108px; }
+.t-type-pill {
+  display: inline-block;
+  font-family: var(--font-body);
+  font-size: 10px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: .04em;
+  padding: 2px 8px;
+  border-radius: 100px;
+  margin-right: 6px;
+}
+.t-type-pill.checkin { background: var(--ok-soft); color: var(--ok); }
+.t-type-pill.checkout { background: var(--stamp-soft); color: var(--stamp); }
+
+.empty-state {
+  text-align: center;
+  padding: 60px 20px;
+  color: var(--text-muted);
+  border: 1px dashed var(--line);
+  border-radius: 6px;
+}
+
+/* ---------- Tabla festivos / empleados ---------- */
+.simple-table { width: 100%; border-collapse: collapse; background: var(--paper-card); border: 1px solid var(--line); border-radius: 6px; overflow: hidden; }
+.simple-table th, .simple-table td { text-align: left; padding: 12px 16px; border-bottom: 1px solid var(--line); font-size: 14px; }
+.simple-table th { background: #F1ECDF; font-size: 12px; text-transform: uppercase; letter-spacing: .04em; color: var(--text-muted); }
+.simple-table tr:last-child td { border-bottom: none; }
+.inline-form { display: flex; gap: 10px; margin-bottom: 20px; flex-wrap: wrap; align-items: end; }
+.inline-form .field { margin-bottom: 0; }
+.tag-default { font-size: 11px; background: #EDE7D6; color: var(--text-muted); padding: 2px 8px; border-radius: 100px; }
+
+.chip {
+  display: inline-flex; align-items: center; gap: 8px;
+  background: var(--paper-card); border: 1px solid var(--line); border-radius: 100px;
+  padding: 7px 14px; font-size: 13px; font-weight: 600; color: var(--ink);
+}
+.chip.base { background: var(--ok-soft); border-color: transparent; color: var(--ok); }
+.chip .chip-remove {
+  cursor: pointer; color: var(--stamp); font-weight: 700; line-height: 1;
+  border: none; background: none; padding: 0; font-size: 15px;
+}
+
+/* ---------- Calendario de asistencia (vista de impresión) ---------- */
+.cal-legend { display: flex; gap: 16px; flex-wrap: wrap; margin-bottom: 20px; font-size: 12px; color: var(--text-muted); }
+.cal-legend span { display: inline-flex; align-items: center; gap: 6px; }
+.cal-legend .swatch { width: 12px; height: 12px; border-radius: 3px; display: inline-block; }
+.cal-employee-block { margin-bottom: 36px; }
+.cal-employee-name { font-size: 16px; font-weight: 700; color: var(--ink); }
+.cal-employee-email { font-size: 12px; color: var(--text-muted); margin-bottom: 10px; }
+.cal-month-title {
+  font-family: var(--font-display); font-weight: 700; text-align: center;
+  margin-bottom: 8px; font-size: 13px; color: var(--ink); text-transform: capitalize;
+}
+.cal-grid {
+  display: grid; grid-template-columns: repeat(7, 1fr); gap: 1px;
+  background: var(--line); border: 1px solid var(--line); border-radius: 6px; overflow: hidden;
+}
+.cal-dow {
+  background: #F1ECDF; padding: 6px 4px; font-size: 10px; font-weight: 700;
+  text-align: center; text-transform: uppercase; color: var(--text-muted); letter-spacing: .03em;
+}
+.cal-cell { background: var(--paper-card); min-height: 64px; padding: 5px 6px; }
+.cal-cell.other-month { background: #F7F4EC; }
+.cal-cell.other-month .cal-day-num { color: #C9C3B2; }
+.cal-cell.weekend { background: #FBF3E8; }
+.cal-cell.holiday { background: var(--stamp-soft); }
+.cal-day-num { font-family: var(--font-display); font-size: 11px; color: var(--text-muted); }
+.cal-bar {
+  margin-top: 4px; border-radius: 4px; padding: 3px 5px; font-size: 10px; font-weight: 700;
+  font-family: var(--font-display); color: #fff; line-height: 1.3; word-break: break-word;
+}
+.cal-bar.regular { background: var(--ok); }
+.cal-bar.overtime { background: var(--stamp); }
+.cal-bar.incomplete { background: #B23A3A; }
+.cal-vacation-tag {
+  margin-top: 4px; font-size: 9px; font-weight: 700; text-transform: uppercase;
+  color: var(--ok); background: var(--ok-soft); border-radius: 4px; padding: 3px 5px; text-align: center;
+}
+.cal-holiday-tag { font-size: 9px; font-weight: 700; text-transform: uppercase; color: #8A2E09; margin-top: 2px; }
+
+@media print {
+  .cal-employee-block { break-inside: avoid; page-break-inside: avoid; }
+}
+
+.loading { color: var(--text-muted); font-size: 14px; padding: 20px 0; }
+
+.status-banner {
+  padding: 14px 18px;
+  border-radius: 6px;
+  margin-bottom: 24px;
+  font-size: 14px;
+  font-weight: 500;
+}
+.status-banner.pending { background: var(--stamp-soft); color: #8A2E09; }
+.status-banner.suspended { background: #F1DADA; color: #7A2020; }
+
+.lang-switcher {
+  padding: 6px 10px;
+  border: 1px solid var(--line);
+  border-radius: 100px;
+  background: var(--paper-card);
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--ink);
+  cursor: pointer;
+}
+.lang-switcher-corner { position: absolute; top: 20px; right: 20px; }
+.sidebar .lang-switcher { background: var(--ink-soft); border-color: var(--ink-soft); color: var(--text-on-ink); width: 100%; margin-top: 10px; }
+@media print { .lang-switcher-corner, .lang-switcher { display: none !important; } }
+
+/* ---------- Impresión ---------- */
+@media print {
+  .sidebar, .toolbar .btn, .main-actions, .no-print { display: none !important; }
+  .app-shell { display: block; }
+  .main { padding: 0; max-width: none; }
+  body { background: #fff; }
+  .ticket, .ticket-single { break-inside: avoid; border: 1px solid #999; }
+  .ticket::before, .ticket-single::before { border-color: #ccc; }
+}
+
+@media (max-width: 860px) {
+  .app-shell { grid-template-columns: 1fr; }
+  .sidebar { flex-direction: row; overflow-x: auto; align-items: center; }
+  .sidebar-company, .sidebar-code { display: none; }
+  .sidebar-nav { flex-direction: row; }
+  .ticket, .ticket-single { grid-template-columns: 1fr; }
+  .ticket::before, .ticket-single::before { display: none; }
+}

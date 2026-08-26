@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title data-i18n="sas.pageTitle">Zyntra · Configuración inicial</title>
+<link rel="stylesheet" href="css/styles.css" />
+</head>
+<body>
+
+<div class="auth-shell">
+  <div class="auth-card" style="position:relative">
+    <div id="lang-switcher-container" class="lang-switcher-corner"></div>
+    <div class="auth-brand">⏱ ZYNTRA</div>
+    <h1 class="auth-title" data-i18n="sas.title">Configuración inicial</h1>
+    <p class="auth-subtitle" data-i18n-html="sas.subtitleHtml">
+      Crea la cuenta del <strong>dueño del servicio</strong> (super-admin). Esta página solo funciona
+      una vez — úsala tú, no la compartas con las empresas que contraten Zyntra. Ellas se registran
+      desde <a href="index.html">la página normal</a>.
+    </p>
+
+    <div id="alert" class="alert"></div>
+
+    <form id="form-bootstrap">
+      <div class="field">
+        <label for="su-name" data-i18n="sas.formName">Tu nombre</label>
+        <input id="su-name" type="text" required />
+      </div>
+      <div class="field">
+        <label for="su-email" data-i18n="sas.formEmail">Correo</label>
+        <input id="su-email" type="email" required autocomplete="email" />
+      </div>
+      <div class="field">
+        <label for="su-password" data-i18n="sas.formPassword">Contraseña</label>
+        <input id="su-password" type="password" required minlength="6" autocomplete="new-password" />
+      </div>
+      <button class="btn btn-stamp" type="submit" style="width:100%" data-i18n="sas.formSubmit">Crear cuenta de super-admin</button>
+    </form>
+  </div>
+</div>
+
+<script src="js/config.js"></script>
+<script type="module" src="js/super-admin-setup.js"></script>
+</body>
+</html>
