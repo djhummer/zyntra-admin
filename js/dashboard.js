@@ -986,9 +986,21 @@ async function handleSaveWorkHours() {
     return;
   }
 
-  const { error } = await supabase.from("companies").update({ work_start: workStart, work_end: workEnd }).eq("id", company.id);
+  const { data, error } = await supabase
+    .from("companies")
+    .update({ work_start: workStart, work_end: workEnd })
+    .eq("id", company.id)
+    .select("id");
+
   if (error) {
     alertBox.textContent = t("dash.company.hoursErrSave", { msg: error.message });
+    alertBox.className = "alert error";
+    return;
+  }
+  if (!data || data.length === 0) {
+    // Supabase no dio error, pero tampoco modificó ninguna fila — casi
+    // siempre significa que la política de RLS está bloqueando el update.
+    alertBox.textContent = t("dash.company.hoursErrSave", { msg: "0 filas afectadas (revisa la política RLS de UPDATE en companies)" });
     alertBox.className = "alert error";
     return;
   }
@@ -1034,9 +1046,19 @@ async function handleLogoUpload(file) {
   // Le agregamos un parámetro con la hora para evitar que el navegador muestre el logo viejo desde caché.
   const freshUrl = `${publicUrlData.publicUrl}?t=${Date.now()}`;
 
-  const { error: updateError } = await supabase.from("companies").update({ logo_url: freshUrl }).eq("id", company.id);
+  const { data: updateData, error: updateError } = await supabase
+    .from("companies")
+    .update({ logo_url: freshUrl })
+    .eq("id", company.id)
+    .select("id");
+
   if (updateError) {
     alertBox.textContent = t("dash.company.errUpload", { msg: updateError.message });
+    alertBox.className = "alert error";
+    return;
+  }
+  if (!updateData || updateData.length === 0) {
+    alertBox.textContent = t("dash.company.errUpload", { msg: "0 filas afectadas (revisa la política RLS de UPDATE en companies)" });
     alertBox.className = "alert error";
     return;
   }
