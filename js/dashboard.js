@@ -431,6 +431,20 @@ async function renderCalendarView(groupedForFilter) {
     const empData = byEmployee[emp.id] || {};
     const empVacations = vacationsByEmployee[emp.id] || [];
 
+    let overtimeMinutes = 0;
+    let regularMinutes = 0;
+    Object.values(empData).forEach((dayGroup) => {
+      dayGroup.sessions.forEach((s) => {
+        if (!s.checkIn || !s.checkOut) return; // sesión incompleta: no se puede medir duración
+        const mins = (new Date(s.checkOut.recorded_at) - new Date(s.checkIn.recorded_at)) / 60000;
+        const sessionOvertime = s.checkIn.is_overtime || s.checkOut.is_overtime;
+        if (sessionOvertime) overtimeMinutes += mins;
+        else regularMinutes += mins;
+      });
+    });
+    const overtimeHoursLabel = (overtimeMinutes / 60).toLocaleString(currentLocale(), { minimumFractionDigits: 1, maximumFractionDigits: 1 });
+    const regularHoursLabel = (regularMinutes / 60).toLocaleString(currentLocale(), { minimumFractionDigits: 1, maximumFractionDigits: 1 });
+
     const weeksHtml = weeks.map((week) => week.map((cell) => {
       const dateKey = dateKeyLocal(cell.date);
       const dow = (cell.date.getDay() + 6) % 7;
@@ -448,16 +462,22 @@ async function renderCalendarView(groupedForFilter) {
       if (cell.inMonth) {
         if (isHoliday) inner += `<div class="cal-holiday-tag">${t("dash.cal.holidayTag")}</div>`;
         if (g && g.sessions.length) {
+          let dayOvertimeMinutes = 0;
           g.sessions.forEach((s) => {
             const sessionOvertime = (s.checkIn && s.checkIn.is_overtime) || (s.checkOut && s.checkOut.is_overtime);
             if (s.checkIn && s.checkOut) {
               inner += `<div class="cal-bar ${sessionOvertime ? "overtime" : "regular"}">${fmtTime(s.checkIn.recorded_at)}–${fmtTime(s.checkOut.recorded_at)}</div>`;
+              if (sessionOvertime) dayOvertimeMinutes += (new Date(s.checkOut.recorded_at) - new Date(s.checkIn.recorded_at)) / 60000;
             } else if (s.checkIn) {
               inner += `<div class="cal-bar incomplete">${fmtTime(s.checkIn.recorded_at)} ${t("dash.cal.noSalida")}</div>`;
             } else if (s.checkOut) {
               inner += `<div class="cal-bar incomplete">${t("dash.cal.noEntrada")} ${fmtTime(s.checkOut.recorded_at)}</div>`;
             }
           });
+          if (dayOvertimeMinutes > 0) {
+            const dayOtLabel = (dayOvertimeMinutes / 60).toLocaleString(currentLocale(), { minimumFractionDigits: 1, maximumFractionDigits: 1 });
+            inner += `<div class="cal-day-ot-total">${t("dash.cal.totalOvertime")}: ${dayOtLabel} h</div>`;
+          }
         } else if (onVacation && !isWeekend && !isHoliday) {
           inner += `<div class="cal-vacation-tag">${t("dash.cal.vacationTag")}</div>`;
         }
@@ -469,6 +489,7 @@ async function renderCalendarView(groupedForFilter) {
       <div class="emp-group cal-emp-group${targetEmployees.length === 1 ? "" : " collapsed"}">
         <button type="button" class="emp-group-summary" data-emp-toggle>
           <span>${escapeHtml(emp.full_name)} <span class="emp-group-meta">${escapeHtml(emp.email)}</span></span>
+          <span class="emp-group-meta">${t("dash.cal.totalRegular")}: ${regularHoursLabel} h · <strong style="color:var(--stamp)">${t("dash.cal.totalOvertime")}: ${overtimeHoursLabel} h</strong></span>
         </button>
         <div class="emp-group-body">
           <div class="cal-month-title">${monthTitle}</div>
