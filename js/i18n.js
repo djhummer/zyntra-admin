@@ -110,6 +110,7 @@ const dict = {
   "dash.report.csvTime": { es: "Hora", en: "Time", id: "Waktu" },
   "dash.report.summaryRecords": { es: "Marcajes registrados", en: "Records logged", id: "Catatan tercatat" },
   "dash.report.summaryOvertimeRecords": { es: "Marcajes con overtime", en: "Records with overtime", id: "Catatan dengan lembur" },
+  "dash.report.recordsLabel": { es: "marcajes", en: "records", id: "catatan" },
   "dash.report.prevMonth": { es: "Mes anterior", en: "Previous month", id: "Bulan sebelumnya" },
   "dash.report.nextMonth": { es: "Mes siguiente", en: "Next month", id: "Bulan berikutnya" },
 

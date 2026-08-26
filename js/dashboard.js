@@ -432,15 +432,18 @@ async function renderCalendarView(groupedForFilter) {
     }).join("")).join("");
 
     return `
-      <div class="cal-employee-block">
-        <div class="cal-employee-name">${escapeHtml(emp.full_name)}</div>
-        <div class="cal-employee-email">${escapeHtml(emp.email)}</div>
-        <div class="cal-month-title">${monthTitle}</div>
-        <div class="cal-grid">
-          ${dows.map((d) => `<div class="cal-dow">${d}</div>`).join("")}
-          ${weeksHtml}
+      <details class="emp-group cal-emp-group" ${targetEmployees.length === 1 ? "open" : ""}>
+        <summary class="emp-group-summary">
+          <span>${escapeHtml(emp.full_name)} <span class="emp-group-meta">${escapeHtml(emp.email)}</span></span>
+        </summary>
+        <div class="emp-group-body">
+          <div class="cal-month-title">${monthTitle}</div>
+          <div class="cal-grid">
+            ${dows.map((d) => `<div class="cal-dow">${d}</div>`).join("")}
+            ${weeksHtml}
+          </div>
         </div>
-      </div>`;
+      </details>`;
   }).join("");
 
   container.innerHTML = legend + blocks;
@@ -448,6 +451,25 @@ async function renderCalendarView(groupedForFilter) {
 
 function recordDateKey(recordedAt) {
   return new Intl.DateTimeFormat("en-CA", { timeZone: company.timezone, year: "numeric", month: "2-digit", day: "2-digit" }).format(new Date(recordedAt));
+}
+
+function groupRecordsByEmployee(records) {
+  const groups = {};
+  for (const r of records) {
+    const key = r.employee_id;
+    if (!groups[key]) {
+      groups[key] = {
+        employeeId: key,
+        name: r.profiles?.full_name || "—",
+        email: r.profiles?.email || "",
+        records: [],
+      };
+    }
+    groups[key].records.push(r);
+  }
+  return Object.values(groups)
+    .map((g) => ({ ...g, records: g.records.slice().sort((a, b) => new Date(b.recorded_at) - new Date(a.recorded_at)) }))
+    .sort((a, b) => a.name.localeCompare(b.name));
 }
 
 function renderRecordTicket(r) {
@@ -485,28 +507,41 @@ function renderReport() {
   }
 
   // Vista de Lista: cada marcaje (entrada o salida) como su propia fila,
-  // sin unificar por día — más reciente primero.
+  // agrupados por empleado en secciones plegables (para que no se vuelva
+  // una lista eterna con muchos empleados) — más reciente primero dentro
+  // de cada uno.
   list.style.display = "block";
   calendar.style.display = "none";
 
-  const records = filterRecordsByOvertime(currentRecords)
-    .slice()
-    .sort((a, b) => new Date(b.recorded_at) - new Date(a.recorded_at));
+  const records = filterRecordsByOvertime(currentRecords);
+  const employeeGroups = groupRecordsByEmployee(records);
 
   const overtimeCount = records.filter((r) => r.is_overtime).length;
-  const employeesWithRecords = new Set(records.map((r) => r.employee_id)).size;
   $("#summary-row").innerHTML = `
     <div class="summary-card"><div class="label">${t("dash.report.summaryRecords")}</div><div class="value">${fmtMoney(records.length)}</div></div>
-    <div class="summary-card"><div class="label">${t("dash.report.summaryEmployeesWithRecords")}</div><div class="value">${fmtMoney(employeesWithRecords)}</div></div>
+    <div class="summary-card"><div class="label">${t("dash.report.summaryEmployeesWithRecords")}</div><div class="value">${fmtMoney(employeeGroups.length)}</div></div>
     <div class="summary-card stamp"><div class="label">${t("dash.report.summaryOvertimeRecords")}</div><div class="value">${fmtMoney(overtimeCount)}</div></div>
   `;
 
-  if (!records.length) {
+  if (!employeeGroups.length) {
     list.innerHTML = `<div class="empty-state">${t("dash.report.noRecords")}</div>`;
     return;
   }
 
-  list.innerHTML = records.map(renderRecordTicket).join("");
+  list.innerHTML = employeeGroups.map((g) => {
+    const empOvertimeCount = g.records.filter((r) => r.is_overtime).length;
+    return `
+      <details class="emp-group" ${employeeGroups.length === 1 ? "open" : ""}>
+        <summary class="emp-group-summary">
+          <span>${escapeHtml(g.name)} <span class="emp-group-meta">${escapeHtml(g.email)}</span></span>
+          <span class="emp-group-meta">${g.records.length} ${t("dash.report.recordsLabel")}${empOvertimeCount ? " · " + empOvertimeCount + " " + t("dash.report.overtime") : ""}</span>
+        </summary>
+        <div class="emp-group-body">
+          ${g.records.map(renderRecordTicket).join("")}
+        </div>
+      </details>
+    `;
+  }).join("");
 }
 
 function exportCsv() {
@@ -745,7 +780,10 @@ function setupFormHandlers() {
   $("#filter-employee").addEventListener("change", loadReport);
   $("#filter-overtime").addEventListener("change", renderReport);
   $("#filter-view").addEventListener("change", renderReport);
-  $("#btn-print").addEventListener("click", () => window.print());
+  $("#btn-print").addEventListener("click", () => {
+    document.querySelectorAll("#report-list details, #report-calendar details").forEach((d) => { d.open = true; });
+    window.print();
+  });
   $("#btn-export-csv").addEventListener("click", exportCsv);
 
   $("#btn-prev-month").title = t("dash.report.prevMonth");

@@ -294,6 +294,24 @@ a { color: var(--stamp); }
 .t-type-pill.checkin { background: var(--ok-soft); color: var(--ok); }
 .t-type-pill.checkout { background: var(--stamp-soft); color: var(--stamp); }
 
+/* Secciones plegables por empleado (Lista y Calendario) */
+.emp-group { margin-bottom: 14px; background: var(--paper-card); border: 1px solid var(--line); border-radius: 6px; overflow: hidden; }
+.emp-group > summary {
+  list-style: none; cursor: pointer; padding: 14px 18px;
+  display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap;
+  font-weight: 600; color: var(--ink); background: var(--paper-card);
+}
+.emp-group > summary::-webkit-details-marker { display: none; }
+.emp-group > summary::marker { content: ""; }
+.emp-group > summary::before {
+  content: "▸"; margin-right: 10px; font-size: 11px; color: var(--text-muted);
+  display: inline-block; transition: transform .15s ease;
+}
+.emp-group[open] > summary::before { transform: rotate(90deg); }
+.emp-group-meta { font-weight: 400; font-size: 13px; color: var(--text-muted); }
+.emp-group-body { padding: 4px 14px 16px; display: flex; flex-direction: column; gap: 10px; }
+.cal-emp-group .emp-group-body { padding: 8px 18px 20px; }
+
 .empty-state {
   text-align: center;
   padding: 60px 20px;
