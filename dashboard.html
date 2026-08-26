@@ -305,6 +305,25 @@
           <button class="btn btn-primary" id="btn-change-email" type="button" data-i18n="dash.company.emailSave">Cambiar correo</button>
         </div>
       </div>
+
+      <div style="margin-top:48px; padding-top:28px; border-top:2px solid #c0392b">
+        <h2 class="main-title" style="font-size:16px; margin-bottom:6px; color:#c0392b" data-i18n="dash.danger.title">Zona de peligro</h2>
+        <p class="hint" style="margin-bottom:16px" data-i18n="dash.danger.hint">
+          Esta acción eliminará permanentemente la empresa y todos sus datos (empleados, asistencias, vacaciones, festivos). No se puede deshacer. Descarga un respaldo antes si lo necesitas.
+        </p>
+        <div id="danger-alert" class="alert"></div>
+        <div class="inline-form" style="flex-direction:column; align-items:flex-start; gap:14px; margin-bottom:0">
+          <div class="field">
+            <label for="danger-pw" data-i18n="dash.danger.pwLabel">Contraseña actual (para verificar)</label>
+            <input type="password" id="danger-pw" autocomplete="current-password" style="min-width:260px" />
+          </div>
+          <div class="field">
+            <label for="danger-confirm-code" data-i18n="dash.danger.codeLabel">Escribe el código de tu empresa para confirmar</label>
+            <input type="text" id="danger-confirm-code" style="min-width:260px" autocomplete="off" />
+          </div>
+          <button class="btn" id="btn-delete-account" type="button" style="background:#c0392b; color:#fff; border:none" data-i18n="dash.danger.deleteBtn">Eliminar empresa y todos sus datos</button>
+        </div>
+      </div>
     </section>
 
     <!-- ============ VISTA: RESPALDO ============ -->

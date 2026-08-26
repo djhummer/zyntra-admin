@@ -337,6 +337,19 @@ const dict = {
   "dash.company.emailErrSave":   { es: "No se pudo cambiar: {msg}", en: "Couldn't change: {msg}", id: "Gagal mengubah: {msg}" },
   "dash.company.emailSuccess":   { es: "Revisa tu nuevo correo y haz clic en el enlace de confirmación para completar el cambio.", en: "Check your new email and click the confirmation link to complete the change.", id: "Cek email barumu dan klik tautan konfirmasi untuk menyelesaikan perubahan." },
 
+  // ---------------- Zona de peligro ----------------
+  "dash.danger.title":       { es: "Zona de peligro", en: "Danger zone", id: "Zona berbahaya" },
+  "dash.danger.hint":        { es: "Esta acción eliminará permanentemente la empresa y todos sus datos (empleados, asistencias, vacaciones, festivos). No se puede deshacer. Descarga un respaldo antes si lo necesitas.", en: "This action will permanently delete the company and all its data (employees, attendance, vacations, holidays). It cannot be undone. Download a backup first if needed.", id: "Tindakan ini akan menghapus permanen perusahaan dan semua datanya (karyawan, absensi, cuti, hari libur). Tidak dapat dibatalkan. Unduh cadangan terlebih dahulu jika diperlukan." },
+  "dash.danger.pwLabel":     { es: "Contraseña actual (para verificar)", en: "Current password (to verify)", id: "Kata sandi saat ini (untuk verifikasi)" },
+  "dash.danger.codeLabel":   { es: "Escribe el código de tu empresa para confirmar", en: "Type your company code to confirm", id: "Ketik kode perusahaanmu untuk konfirmasi" },
+  "dash.danger.deleteBtn":   { es: "Eliminar empresa y todos sus datos", en: "Delete company and all its data", id: "Hapus perusahaan dan semua datanya" },
+  "dash.danger.errEmpty":    { es: "Completa la contraseña y el código de empresa.", en: "Fill in the password and company code.", id: "Isi kata sandi dan kode perusahaan." },
+  "dash.danger.errWrongCode":{ es: "El código no coincide. Debes escribir exactamente: {code}", en: "The code doesn't match. You must type exactly: {code}", id: "Kode tidak cocok. Kamu harus mengetikkan persis: {code}" },
+  "dash.danger.errWrongPw":  { es: "Contraseña incorrecta.", en: "Incorrect password.", id: "Kata sandi salah." },
+  "dash.danger.finalConfirm":{ es: "¿Estás absolutamente seguro? Esta acción es IRREVERSIBLE y borrará todos los datos de la empresa.", en: "Are you absolutely sure? This action is IRREVERSIBLE and will delete all company data.", id: "Apakah kamu benar-benar yakin? Tindakan ini TIDAK DAPAT DIBATALKAN dan akan menghapus semua data perusahaan." },
+  "dash.danger.deleting":    { es: "Eliminando datos… no cierres esta ventana.", en: "Deleting data… do not close this window.", id: "Menghapus data… jangan tutup jendela ini." },
+  "dash.danger.errDelete":   { es: "Error al eliminar: {msg}", en: "Error deleting: {msg}", id: "Kesalahan saat menghapus: {msg}" },
+
   // ---------------- Super-admin ----------------
   "sa.pageTitle": { es: "ZyntrAbsen · Super Admin", en: "ZyntrAbsen · Super Admin", id: "ZyntrAbsen · Super Admin" },
   "sa.subtitle": { es: "Panel del dueño del servicio", en: "Service owner panel", id: "Panel pemilik layanan" },
