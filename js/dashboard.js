@@ -432,10 +432,10 @@ async function renderCalendarView(groupedForFilter) {
     }).join("")).join("");
 
     return `
-      <details class="emp-group cal-emp-group" ${targetEmployees.length === 1 ? "open" : ""}>
-        <summary class="emp-group-summary">
+      <div class="emp-group cal-emp-group${targetEmployees.length === 1 ? "" : " collapsed"}">
+        <button type="button" class="emp-group-summary" data-emp-toggle>
           <span>${escapeHtml(emp.full_name)} <span class="emp-group-meta">${escapeHtml(emp.email)}</span></span>
-        </summary>
+        </button>
         <div class="emp-group-body">
           <div class="cal-month-title">${monthTitle}</div>
           <div class="cal-grid">
@@ -443,10 +443,11 @@ async function renderCalendarView(groupedForFilter) {
             ${weeksHtml}
           </div>
         </div>
-      </details>`;
+      </div>`;
   }).join("");
 
   container.innerHTML = legend + blocks;
+  wireEmpGroupToggles();
 }
 
 function recordDateKey(recordedAt) {
@@ -470,6 +471,14 @@ function groupRecordsByEmployee(records) {
   return Object.values(groups)
     .map((g) => ({ ...g, records: g.records.slice().sort((a, b) => new Date(b.recorded_at) - new Date(a.recorded_at)) }))
     .sort((a, b) => a.name.localeCompare(b.name));
+}
+
+function wireEmpGroupToggles() {
+  document.querySelectorAll("[data-emp-toggle]").forEach((btn) => {
+    btn.addEventListener("click", () => {
+      btn.closest(".emp-group").classList.toggle("collapsed");
+    });
+  });
 }
 
 function renderRecordTicket(r) {
@@ -530,18 +539,20 @@ function renderReport() {
 
   list.innerHTML = employeeGroups.map((g) => {
     const empOvertimeCount = g.records.filter((r) => r.is_overtime).length;
+    const collapsedCls = employeeGroups.length === 1 ? "" : " collapsed";
     return `
-      <details class="emp-group" ${employeeGroups.length === 1 ? "open" : ""}>
-        <summary class="emp-group-summary">
+      <div class="emp-group${collapsedCls}">
+        <button type="button" class="emp-group-summary" data-emp-toggle>
           <span>${escapeHtml(g.name)} <span class="emp-group-meta">${escapeHtml(g.email)}</span></span>
           <span class="emp-group-meta">${g.records.length} ${t("dash.report.recordsLabel")}${empOvertimeCount ? " · " + empOvertimeCount + " " + t("dash.report.overtime") : ""}</span>
-        </summary>
+        </button>
         <div class="emp-group-body">
           ${g.records.map(renderRecordTicket).join("")}
         </div>
-      </details>
+      </div>
     `;
   }).join("");
+  wireEmpGroupToggles();
 }
 
 function exportCsv() {
@@ -781,7 +792,7 @@ function setupFormHandlers() {
   $("#filter-overtime").addEventListener("change", renderReport);
   $("#filter-view").addEventListener("change", renderReport);
   $("#btn-print").addEventListener("click", () => {
-    document.querySelectorAll("#report-list details, #report-calendar details").forEach((d) => { d.open = true; });
+    document.querySelectorAll("#report-list .emp-group, #report-calendar .emp-group").forEach((el) => { el.classList.remove("collapsed"); });
     window.print();
   });
   $("#btn-export-csv").addEventListener("click", exportCsv);
