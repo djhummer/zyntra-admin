@@ -321,6 +321,19 @@ const dict = {
   "dash.company.pwErrSave":    { es: "No se pudo cambiar: {msg}", en: "Couldn't change: {msg}", id: "Gagal mengubah: {msg}" },
   "dash.company.pwSuccess":    { es: "Contraseña actualizada correctamente.", en: "Password updated successfully.", id: "Kata sandi berhasil diperbarui." },
 
+  // ---------------- Dashboard: Cambiar correo ----------------
+  "dash.company.emailTitle":   { es: "Cambiar correo de acceso", en: "Change login email", id: "Ganti email login" },
+  "dash.company.emailHint":    { es: "Supabase enviará un enlace de confirmación al nuevo correo. El cambio solo aplica al hacer clic en ese enlace.", en: "Supabase will send a confirmation link to the new email. The change only applies after clicking that link.", id: "Supabase akan mengirim tautan konfirmasi ke email baru. Perubahan berlaku setelah kamu mengklik tautan tersebut." },
+  "dash.company.emailCurrent": { es: "Correo actual", en: "Current email", id: "Email saat ini" },
+  "dash.company.emailNew":     { es: "Nuevo correo",  en: "New email",     id: "Email baru" },
+  "dash.company.emailPw":      { es: "Contraseña actual (para verificar)", en: "Current password (to verify)", id: "Kata sandi saat ini (untuk verifikasi)" },
+  "dash.company.emailSave":    { es: "Cambiar correo", en: "Change email",  id: "Ganti email" },
+  "dash.company.emailErrEmpty":  { es: "Completa el nuevo correo y tu contraseña.", en: "Fill in the new email and your password.", id: "Isi email baru dan kata sandimu." },
+  "dash.company.emailErrSame":   { es: "El nuevo correo es igual al actual.", en: "The new email is the same as the current one.", id: "Email baru sama dengan yang sekarang." },
+  "dash.company.emailErrPw":     { es: "Contraseña incorrecta.", en: "Incorrect password.", id: "Kata sandi salah." },
+  "dash.company.emailErrSave":   { es: "No se pudo cambiar: {msg}", en: "Couldn't change: {msg}", id: "Gagal mengubah: {msg}" },
+  "dash.company.emailSuccess":   { es: "Revisa tu nuevo correo y haz clic en el enlace de confirmación para completar el cambio.", en: "Check your new email and click the confirmation link to complete the change.", id: "Cek email barumu dan klik tautan konfirmasi untuk menyelesaikan perubahan." },
+
   // ---------------- Super-admin ----------------
   "sa.pageTitle": { es: "ZyntrAbsen · Super Admin", en: "ZyntrAbsen · Super Admin", id: "ZyntrAbsen · Super Admin" },
   "sa.subtitle": { es: "Panel del dueño del servicio", en: "Service owner panel", id: "Panel pemilik layanan" },

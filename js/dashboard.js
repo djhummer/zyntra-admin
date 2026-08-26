@@ -50,6 +50,13 @@ async function init() {
   renderWorkHours();
   await loadWorkSchedules();
 
+  // Mostrar correo actual del admin en el formulario de cambio de email
+  const { data: { session: adminSession } } = await supabase.auth.getSession();
+  if (adminSession?.user?.email) {
+    const emailDisplay = $("#email-current-display");
+    if (emailDisplay) emailDisplay.value = adminSession.user.email;
+  }
+
   const { data: countryRows } = await supabase.from("countries").select("code, name");
   (countryRows || []).forEach((c) => { countriesMap[c.code] = c.name; });
 
@@ -909,6 +916,7 @@ function setupFormHandlers() {
   $("#btn-save-hours").addEventListener("click", handleSaveWorkHours);
   $("#btn-save-schedule").addEventListener("click", handleSaveSchedule);
   $("#btn-change-pw").addEventListener("click", handleChangePassword);
+  $("#btn-change-email").addEventListener("click", handleChangeEmail);
 
   $("#btn-add-country").addEventListener("click", async () => {
     const code = $("#add-country-select").value;
@@ -1150,6 +1158,50 @@ async function handleChangePassword() {
   $("#pw-current").value = "";
   $("#pw-new").value = "";
   $("#pw-confirm").value = "";
+}
+
+async function handleChangeEmail() {
+  const alertBox = $("#email-alert");
+  alertBox.className = "alert";
+
+  const newEmail = $("#email-new").value.trim().toLowerCase();
+  const password = $("#email-pw").value;
+
+  if (!newEmail || !password) {
+    alertBox.textContent = t("dash.company.emailErrEmpty");
+    alertBox.className = "alert error";
+    return;
+  }
+
+  const { data: { session } } = await supabase.auth.getSession();
+  const currentEmail = session?.user?.email;
+
+  if (newEmail === currentEmail) {
+    alertBox.textContent = t("dash.company.emailErrSame");
+    alertBox.className = "alert error";
+    return;
+  }
+
+  // Verificar contraseña actual
+  const { error: signInError } = await supabase.auth.signInWithPassword({ email: currentEmail, password });
+  if (signInError) {
+    alertBox.textContent = t("dash.company.emailErrPw");
+    alertBox.className = "alert error";
+    return;
+  }
+
+  // Solicitar cambio de email — Supabase envía enlace de confirmación al nuevo correo
+  const { error: updateError } = await supabase.auth.updateUser({ email: newEmail });
+  if (updateError) {
+    alertBox.textContent = t("dash.company.emailErrSave", { msg: updateError.message });
+    alertBox.className = "alert error";
+    return;
+  }
+
+  alertBox.textContent = t("dash.company.emailSuccess");
+  alertBox.className = "alert success";
+  $("#email-new").value = "";
+  $("#email-pw").value = "";
 }
 
 // ---------------------------------------------------------------------
