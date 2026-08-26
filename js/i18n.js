@@ -120,6 +120,8 @@ const dict = {
   "dash.cal.legendIncomplete": { es: "Sin salida", en: "No checkout", id: "Belum keluar" },
   "dash.cal.legendVacation": { es: "Vacaciones", en: "Vacation", id: "Cuti" },
   "dash.cal.legendHoliday": { es: "Festivo", en: "Holiday", id: "Libur" },
+  "dash.cal.totalRegular": { es: "Total regular", en: "Total regular", id: "Total reguler" },
+  "dash.cal.totalOvertime": { es: "Total overtime", en: "Total overtime", id: "Total lembur" },
   "dash.cal.generating": { es: "Generando calendario…", en: "Generating calendar…", id: "Membuat kalender…" },
   "dash.cal.noSalida": { es: "(sin salida)", en: "(no checkout)", id: "(belum keluar)" },
   "dash.cal.noEntrada": { es: "(sin entrada)", en: "(no check-in)", id: "(belum masuk)" },
