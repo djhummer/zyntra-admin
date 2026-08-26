@@ -167,6 +167,7 @@ function employeeActionButtons(e) {
   } else {
     btns.push(`<button class="btn btn-primary" data-reactivate="${e.id}">${t("dash.emp.btnReactivate")}</button>`);
   }
+  btns.push(`<button class="btn btn-ghost" data-rename="${e.id}" data-name="${escapeHtml(e.full_name)}">${t("dash.emp.btnRename")}</button>`);
   btns.push(`<button class="btn btn-ghost" data-delete="${e.id}" style="color:var(--stamp)">${t("dash.emp.btnDelete")}</button>`);
   return btns.join("");
 }
@@ -200,6 +201,16 @@ function wireEmployeeActions() {
         .update({ status: "terminated", termination_date: dateStr })
         .eq("id", btn.dataset.terminate);
       if (error) return alert(t("dash.emp.errTerminate", { msg: error.message }));
+      await loadEmployees(); renderEmployeesTable();
+    });
+  });
+
+  $("#employees-tbody").querySelectorAll("[data-rename]").forEach((btn) => {
+    btn.addEventListener("click", async () => {
+      const newName = prompt(t("dash.emp.promptRename"), btn.dataset.name);
+      if (!newName || newName.trim() === btn.dataset.name) return;
+      const { error } = await supabase.from("profiles").update({ full_name: newName.trim() }).eq("id", btn.dataset.rename);
+      if (error) return alert(t("dash.emp.errRename", { msg: error.message }));
       await loadEmployees(); renderEmployeesTable();
     });
   });
