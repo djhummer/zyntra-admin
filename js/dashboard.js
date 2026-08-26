@@ -908,6 +908,7 @@ function setupFormHandlers() {
 
   $("#btn-save-hours").addEventListener("click", handleSaveWorkHours);
   $("#btn-save-schedule").addEventListener("click", handleSaveSchedule);
+  $("#btn-change-pw").addEventListener("click", handleChangePassword);
 
   $("#btn-add-country").addEventListener("click", async () => {
     const code = $("#add-country-select").value;
@@ -1100,7 +1101,59 @@ async function handleLogoUpload(file) {
 }
 
 // ---------------------------------------------------------------------
-// 7. Recordatorios de marcaje (work_schedules)
+// 7. Cambiar contraseña del administrador
+// ---------------------------------------------------------------------
+async function handleChangePassword() {
+  const alertBox = $("#pw-alert");
+  alertBox.className = "alert";
+
+  const current = $("#pw-current").value;
+  const newPw   = $("#pw-new").value;
+  const confirm = $("#pw-confirm").value;
+
+  if (!current || !newPw || !confirm) {
+    alertBox.textContent = t("dash.company.pwErrEmpty");
+    alertBox.className = "alert error";
+    return;
+  }
+  if (newPw.length < 6) {
+    alertBox.textContent = t("dash.company.pwErrShort");
+    alertBox.className = "alert error";
+    return;
+  }
+  if (newPw !== confirm) {
+    alertBox.textContent = t("dash.company.pwErrMatch");
+    alertBox.className = "alert error";
+    return;
+  }
+
+  // Verificar contraseña actual reautenticando
+  const { data: { session } } = await supabase.auth.getSession();
+  const email = session?.user?.email;
+  const { error: signInError } = await supabase.auth.signInWithPassword({ email, password: current });
+  if (signInError) {
+    alertBox.textContent = t("dash.company.pwErrWrong");
+    alertBox.className = "alert error";
+    return;
+  }
+
+  // Cambiar la contraseña en Supabase Auth
+  const { error: updateError } = await supabase.auth.updateUser({ password: newPw });
+  if (updateError) {
+    alertBox.textContent = t("dash.company.pwErrSave", { msg: updateError.message });
+    alertBox.className = "alert error";
+    return;
+  }
+
+  alertBox.textContent = t("dash.company.pwSuccess");
+  alertBox.className = "alert success";
+  $("#pw-current").value = "";
+  $("#pw-new").value = "";
+  $("#pw-confirm").value = "";
+}
+
+// ---------------------------------------------------------------------
+// 8. Recordatorios de marcaje (work_schedules)
 // ---------------------------------------------------------------------
 async function loadWorkSchedules() {
   const { data, error } = await supabase

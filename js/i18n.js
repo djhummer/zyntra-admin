@@ -307,6 +307,20 @@ const dict = {
   "dash.company.schSat": { es: "Sábado",    en: "Saturday",  id: "Sabtu" },
   "dash.company.schSun": { es: "Domingo",   en: "Sunday",    id: "Minggu" },
 
+  // ---------------- Dashboard: Cambiar contraseña ----------------
+  "dash.company.pwTitle":   { es: "Cambiar contraseña", en: "Change password", id: "Ganti kata sandi" },
+  "dash.company.pwHint":    { es: "Tu contraseña se almacena de forma segura en Supabase, nunca en este sitio.", en: "Your password is stored securely in Supabase, never on this site.", id: "Kata sandimu disimpan dengan aman di Supabase, tidak pernah di situs ini." },
+  "dash.company.pwCurrent": { es: "Contraseña actual", en: "Current password", id: "Kata sandi saat ini" },
+  "dash.company.pwNew":     { es: "Nueva contraseña",  en: "New password",     id: "Kata sandi baru" },
+  "dash.company.pwConfirm": { es: "Confirmar nueva contraseña", en: "Confirm new password", id: "Konfirmasi kata sandi baru" },
+  "dash.company.pwSave":    { es: "Cambiar contraseña", en: "Change password",  id: "Ganti kata sandi" },
+  "dash.company.pwErrEmpty":   { es: "Completa todos los campos.", en: "Fill in all fields.", id: "Isi semua kolom." },
+  "dash.company.pwErrShort":   { es: "La nueva contraseña debe tener al menos 6 caracteres.", en: "New password must be at least 6 characters.", id: "Kata sandi baru minimal 6 karakter." },
+  "dash.company.pwErrMatch":   { es: "Las contraseñas nuevas no coinciden.", en: "New passwords don't match.", id: "Kata sandi baru tidak cocok." },
+  "dash.company.pwErrWrong":   { es: "La contraseña actual es incorrecta.", en: "Current password is incorrect.", id: "Kata sandi saat ini salah." },
+  "dash.company.pwErrSave":    { es: "No se pudo cambiar: {msg}", en: "Couldn't change: {msg}", id: "Gagal mengubah: {msg}" },
+  "dash.company.pwSuccess":    { es: "Contraseña actualizada correctamente.", en: "Password updated successfully.", id: "Kata sandi berhasil diperbarui." },
+
   // ---------------- Super-admin ----------------
   "sa.pageTitle": { es: "ZyntrAbsen · Super Admin", en: "ZyntrAbsen · Super Admin", id: "ZyntrAbsen · Super Admin" },
   "sa.subtitle": { es: "Panel del dueño del servicio", en: "Service owner panel", id: "Panel pemilik layanan" },
