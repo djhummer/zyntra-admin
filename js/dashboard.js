@@ -915,28 +915,33 @@ async function restoreBackup(file) {
 
   let failedTables = 0;
 
-  // 1. Profiles (employees) — via SECURITY DEFINER RPC to bypass RLS
+  // 1. Profiles (employees) — SECURITY DEFINER RPC to bypass RLS
   if (backup.employees.length) {
     const { error } = await supabase.rpc("restore_company_profiles", {
-      p_profiles: JSON.stringify(backup.employees),
+      p_profiles: backup.employees,   // pass array directly, NOT JSON.stringify
       p_company_id: company.id,
     });
     if (error) { failedTables++; console.error("restore profiles:", error); }
   }
 
-  // 2. Attendance records (in chunks of 200 to avoid payload limits)
+  // 2. Attendance records — SECURITY DEFINER RPC (in chunks of 200)
   if (backup.attendance_records.length) {
     const CHUNK = 200;
     for (let i = 0; i < backup.attendance_records.length; i += CHUNK) {
-      const { error } = await supabase.from("attendance_records")
-        .upsert(backup.attendance_records.slice(i, i + CHUNK), { onConflict: "id" });
+      const { error } = await supabase.rpc("restore_company_attendance", {
+        p_records: backup.attendance_records.slice(i, i + CHUNK),
+        p_company_id: company.id,
+      });
       if (error) { failedTables++; console.error("restore attendance_records:", error); break; }
     }
   }
 
-  // 3. Vacations
+  // 3. Vacations — SECURITY DEFINER RPC
   if ((backup.vacations || []).length) {
-    const { error } = await supabase.from("vacations").upsert(backup.vacations, { onConflict: "id" });
+    const { error } = await supabase.rpc("restore_company_vacations", {
+      p_vacations: backup.vacations,
+      p_company_id: company.id,
+    });
     if (error) { failedTables++; console.error("restore vacations:", error); }
   }
 
