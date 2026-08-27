@@ -412,6 +412,56 @@ function buildMonthMatrix(year, monthIndex) {
   return weeks;
 }
 
+// Returns { start: Date, end: Date } (UTC) for the regular work window on dateKey,
+// or null if no schedule exists for that weekday.
+function scheduleWindowUTC(dateKey) {
+  const d = new Date(`${dateKey}T12:00:00Z`);
+  const dow = ((d.getDay() + 6) % 7) + 1; // 1=Mon…7=Sun ISO
+  const sched = workSchedules[dow];
+  if (!sched) return null;
+
+  // Determine UTC offset for company timezone on this date by sampling noon UTC
+  const fmt = new Intl.DateTimeFormat("en-CA", {
+    timeZone: company.timezone, hour: "2-digit", minute: "2-digit", hour12: false,
+  });
+  const [tzH, tzM] = fmt.format(d).split(":").map(Number);
+  // UTC = local + offsetMinutes  (positive for western TZ, negative for eastern)
+  const offsetMinutes = 12 * 60 - (tzH * 60 + tzM);
+
+  const dayStartMs = new Date(`${dateKey}T00:00:00Z`).getTime();
+  const [inH, inM]   = sched.check_in_time.split(":").map(Number);
+  const [outH, outM] = sched.check_out_time.split(":").map(Number);
+  return {
+    start: new Date(dayStartMs + (inH * 60 + inM + offsetMinutes) * 60000),
+    end:   new Date(dayStartMs + (outH * 60 + outM + offsetMinutes) * 60000),
+  };
+}
+
+// Splits a check_in→check_out session into regular and overtime segments
+// using the company's work schedule for the day. Returns an array of
+// { type: "regular"|"overtime", start: Date, end: Date } parts.
+function splitSessionParts(checkInAt, checkOutAt, dateKey) {
+  const sessionStart = new Date(checkInAt);
+  const sessionEnd   = new Date(checkOutAt);
+  const win = scheduleWindowUTC(dateKey);
+
+  if (!win) return [{ type: "overtime", start: sessionStart, end: sessionEnd }];
+
+  const parts = [];
+  if (sessionStart < win.start) {
+    parts.push({ type: "overtime", start: sessionStart, end: sessionEnd < win.start ? sessionEnd : win.start });
+  }
+  const overlapS = sessionStart > win.start ? sessionStart : win.start;
+  const overlapE = sessionEnd   < win.end   ? sessionEnd   : win.end;
+  if (overlapS < overlapE) {
+    parts.push({ type: "regular", start: overlapS, end: overlapE });
+  }
+  if (sessionEnd > win.end) {
+    parts.push({ type: "overtime", start: sessionStart > win.end ? sessionStart : win.end, end: sessionEnd });
+  }
+  return parts.length ? parts : [{ type: "overtime", start: sessionStart, end: sessionEnd }];
+}
+
 async function renderCalendarView(groupedForFilter) {
   const container = $("#report-calendar");
   container.innerHTML = `<p class="loading">${t("dash.cal.generating")}</p>`;
@@ -461,11 +511,12 @@ async function renderCalendarView(groupedForFilter) {
     let regularMinutes = 0;
     Object.values(empData).forEach((dayGroup) => {
       dayGroup.sessions.forEach((s) => {
-        if (!s.checkIn || !s.checkOut) return; // sesión incompleta: no se puede medir duración
-        const mins = (new Date(s.checkOut.recorded_at) - new Date(s.checkIn.recorded_at)) / 60000;
-        const sessionOvertime = s.checkIn.is_overtime || s.checkOut.is_overtime;
-        if (sessionOvertime) overtimeMinutes += mins;
-        else regularMinutes += mins;
+        if (!s.checkIn || !s.checkOut) return;
+        for (const part of splitSessionParts(s.checkIn.recorded_at, s.checkOut.recorded_at, dayGroup.date)) {
+          const mins = (part.end - part.start) / 60000;
+          if (part.type === "overtime") overtimeMinutes += mins;
+          else regularMinutes += mins;
+        }
       });
     });
     const overtimeHoursLabel = (overtimeMinutes / 60).toLocaleString(currentLocale(), { minimumFractionDigits: 1, maximumFractionDigits: 1 });
@@ -490,10 +541,11 @@ async function renderCalendarView(groupedForFilter) {
         if (g && g.sessions.length) {
           let dayOvertimeMinutes = 0;
           g.sessions.forEach((s) => {
-            const sessionOvertime = (s.checkIn && s.checkIn.is_overtime) || (s.checkOut && s.checkOut.is_overtime);
             if (s.checkIn && s.checkOut) {
-              inner += `<div class="cal-bar ${sessionOvertime ? "overtime" : "regular"}">${fmtTime(s.checkIn.recorded_at)}–${fmtTime(s.checkOut.recorded_at)}</div>`;
-              if (sessionOvertime) dayOvertimeMinutes += (new Date(s.checkOut.recorded_at) - new Date(s.checkIn.recorded_at)) / 60000;
+              for (const part of splitSessionParts(s.checkIn.recorded_at, s.checkOut.recorded_at, g.date)) {
+                inner += `<div class="cal-bar ${part.type}">${fmtTime(part.start.toISOString())}–${fmtTime(part.end.toISOString())}</div>`;
+                if (part.type === "overtime") dayOvertimeMinutes += (part.end - part.start) / 60000;
+              }
             } else if (s.checkIn) {
               inner += `<div class="cal-bar incomplete">${fmtTime(s.checkIn.recorded_at)} ${t("dash.cal.noSalida")}</div>`;
             } else if (s.checkOut) {
