@@ -915,9 +915,12 @@ async function restoreBackup(file) {
 
   let failedTables = 0;
 
-  // 1. Profiles (employees)
+  // 1. Profiles (employees) — via SECURITY DEFINER RPC to bypass RLS
   if (backup.employees.length) {
-    const { error } = await supabase.from("profiles").upsert(backup.employees, { onConflict: "id" });
+    const { error } = await supabase.rpc("restore_company_profiles", {
+      p_profiles: JSON.stringify(backup.employees),
+      p_company_id: company.id,
+    });
     if (error) { failedTables++; console.error("restore profiles:", error); }
   }
 
