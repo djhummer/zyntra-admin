@@ -465,11 +465,15 @@ function roundToHalfHour(date) {
 // Splits a check_in→check_out session into regular and overtime segments
 // using the company's work schedule for the day. Returns an array of
 // { type: "regular"|"overtime", start: Date, end: Date } parts.
-function splitSessionParts(checkInAt, checkOutAt, dateKey) {
+function splitSessionParts(checkInAt, checkOutAt, dateKey, isHoliday = false) {
   const sessionStart = new Date(checkInAt);
   const sessionEnd   = new Date(checkOutAt);
 
   if (sessionStart >= sessionEnd) return [];
+
+  // On holidays every minute worked is overtime, regardless of schedule
+  if (isHoliday) return [{ type: "overtime", start: sessionStart, end: sessionEnd }];
+
   const win = scheduleWindowUTC(dateKey);
 
   if (!win) return [{ type: "overtime", start: sessionStart, end: sessionEnd }];
@@ -550,7 +554,8 @@ async function renderCalendarView(groupedForFilter) {
       dayGroup.sessions.forEach((s) => {
         if (!s.checkIn || !s.checkOut) return;
         let sessionOtMinutes = 0;
-        for (const part of splitSessionParts(s.checkIn.recorded_at, s.checkOut.recorded_at, dayGroup.date)) {
+        const dayIsHoliday = holidaySet.has(dayGroup.date);
+        for (const part of splitSessionParts(s.checkIn.recorded_at, s.checkOut.recorded_at, dayGroup.date, dayIsHoliday)) {
           const mins = (part.end - part.start) / 60000;
           if (part.type === "overtime") sessionOtMinutes += mins;
           else regularMinutes += mins;
@@ -582,7 +587,7 @@ async function renderCalendarView(groupedForFilter) {
           g.sessions.forEach((s) => {
             if (s.checkIn && s.checkOut) {
               let sessionOtMinutes = 0;
-              for (const part of splitSessionParts(s.checkIn.recorded_at, s.checkOut.recorded_at, g.date)) {
+              for (const part of splitSessionParts(s.checkIn.recorded_at, s.checkOut.recorded_at, g.date, isHoliday)) {
                 inner += `<div class="cal-bar ${part.type}">${fmtTime(part.start.toISOString())}–${fmtTime(part.end.toISOString())}</div>`;
                 if (part.type === "overtime") sessionOtMinutes += (part.end - part.start) / 60000;
               }
