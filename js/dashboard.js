@@ -447,19 +447,29 @@ function splitSessionParts(checkInAt, checkOutAt, dateKey) {
 
   if (!win) return [{ type: "overtime", start: sessionStart, end: sessionEnd }];
 
+  // Grace period: if employee arrives late but within the grace window, count from scheduled start
+  const graceMs = (company.late_grace_minutes ?? 0) * 60000;
+  const effectiveStart = (sessionStart > win.start && sessionStart <= new Date(win.start.getTime() + graceMs))
+    ? win.start
+    : sessionStart;
+
   const parts = [];
-  if (sessionStart < win.start) {
-    parts.push({ type: "overtime", start: sessionStart, end: sessionEnd < win.start ? sessionEnd : win.start });
+  if (effectiveStart < win.start) {
+    parts.push({ type: "overtime", start: effectiveStart, end: sessionEnd < win.start ? sessionEnd : win.start });
   }
-  const overlapS = sessionStart > win.start ? sessionStart : win.start;
-  const overlapE = sessionEnd   < win.end   ? sessionEnd   : win.end;
+  const overlapS = effectiveStart > win.start ? effectiveStart : win.start;
+  const overlapE = sessionEnd < win.end ? sessionEnd : win.end;
   if (overlapS < overlapE) {
     parts.push({ type: "regular", start: overlapS, end: overlapE });
   }
   if (sessionEnd > win.end) {
-    parts.push({ type: "overtime", start: sessionStart > win.end ? sessionStart : win.end, end: sessionEnd });
+    parts.push({ type: "overtime", start: effectiveStart > win.end ? effectiveStart : win.end, end: sessionEnd });
   }
-  return parts.length ? parts : [{ type: "overtime", start: sessionStart, end: sessionEnd }];
+
+  // Discard overtime segments shorter than the minimum threshold
+  const otMinMs = (company.overtime_min_minutes ?? 0) * 60000;
+  const filtered = parts.filter((p) => !(p.type === "overtime" && (p.end - p.start) < otMinMs));
+  return filtered.length ? filtered : [{ type: "regular", start: sessionStart, end: sessionEnd }];
 }
 
 async function renderCalendarView(groupedForFilter) {
@@ -1080,6 +1090,8 @@ function setupFormHandlers() {
 
   $("#btn-save-hours").addEventListener("click", handleSaveWorkHours);
   $("#btn-save-schedule").addEventListener("click", handleSaveSchedule);
+  $("#btn-save-rules")?.addEventListener("click", handleSaveAttendanceRules);
+  renderAttendanceRules();
   $("#btn-change-pw").addEventListener("click", handleChangePassword);
   $("#btn-change-email").addEventListener("click", handleChangeEmail);
 
@@ -1464,6 +1476,45 @@ async function handleSaveSchedule() {
 
   await loadWorkSchedules();
   statusSpan.textContent = t("dash.company.schSaved");
+}
+
+// 9. Reglas de asistencia (tolerancia + mínimo overtime)
+// ---------------------------------------------------------------------
+function renderAttendanceRules() {
+  const graceInput = $("#grace-minutes");
+  const otMinInput = $("#overtime-min-minutes");
+  if (graceInput) graceInput.value = company.late_grace_minutes ?? 0;
+  if (otMinInput) otMinInput.value = company.overtime_min_minutes ?? 0;
+}
+
+async function handleSaveAttendanceRules() {
+  const statusSpan = $("#rules-status");
+  statusSpan.textContent = "";
+
+  const grace = parseInt($("#grace-minutes")?.value ?? "0", 10);
+  const otMin = parseInt($("#overtime-min-minutes")?.value ?? "0", 10);
+
+  const { data, error } = await supabase
+    .from("companies")
+    .update({ late_grace_minutes: grace, overtime_min_minutes: otMin })
+    .eq("id", company.id)
+    .select("id");
+
+  if (error) {
+    statusSpan.textContent = t("dash.company.rulesErrSave", { msg: error.message });
+    statusSpan.style.color = "var(--stamp)";
+    return;
+  }
+  if (!data || data.length === 0) {
+    statusSpan.textContent = t("dash.company.rulesErrSave", { msg: "RLS bloqueó el update" });
+    statusSpan.style.color = "var(--stamp)";
+    return;
+  }
+
+  company.late_grace_minutes = grace;
+  company.overtime_min_minutes = otMin;
+  statusSpan.textContent = t("dash.company.rulesSaved");
+  statusSpan.style.color = "";
 }
 
 function escapeHtml(str = "") {

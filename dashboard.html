@@ -261,6 +261,29 @@
       </div>
 
       <div style="margin-top:32px; padding-top:28px; border-top:1px solid var(--line)">
+        <h2 class="main-title" style="font-size:16px; margin-bottom:6px" data-i18n="dash.company.rulesTitle">Reglas de asistencia</h2>
+        <p class="hint" style="margin-bottom:16px" data-i18n="dash.company.rulesHint">
+          Configura la tolerancia de llegada tardía y el tiempo mínimo para que las horas extras se contabilicen.
+        </p>
+        <div class="inline-form" style="flex-wrap:wrap; gap:20px; margin-bottom:0">
+          <div class="field">
+            <label for="grace-minutes" data-i18n="dash.company.graceLabel">Tolerancia de llegada tardía (minutos)</label>
+            <input type="number" id="grace-minutes" min="0" max="60" step="1" style="width:90px" value="0" />
+            <span class="hint" data-i18n="dash.company.graceHint" style="font-size:11px"></span>
+          </div>
+          <div class="field">
+            <label for="overtime-min-minutes" data-i18n="dash.company.overtimeMinLabel">Mínimo de horas extras por sesión (minutos)</label>
+            <input type="number" id="overtime-min-minutes" min="0" max="120" step="1" style="width:90px" value="0" />
+            <span class="hint" data-i18n="dash.company.overtimeMinHint" style="font-size:11px"></span>
+          </div>
+        </div>
+        <div style="margin-top:16px; display:flex; align-items:center; gap:14px">
+          <button class="btn btn-primary" id="btn-save-rules" type="button" data-i18n="dash.company.rulesSave">Guardar reglas</button>
+          <span id="rules-status" class="hint"></span>
+        </div>
+      </div>
+
+      <div style="margin-top:32px; padding-top:28px; border-top:1px solid var(--line)">
         <h2 class="main-title" style="font-size:16px; margin-bottom:6px" data-i18n="dash.company.pwTitle">Cambiar contraseña</h2>
         <p class="hint" style="margin-bottom:16px" data-i18n="dash.company.pwHint">
           Tu contraseña se almacena de forma segura en Supabase, nunca en este sitio.

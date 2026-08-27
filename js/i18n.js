@@ -325,6 +325,21 @@ const dict = {
   "dash.company.schSat": { es: "Sábado",    en: "Saturday",  id: "Sabtu" },
   "dash.company.schSun": { es: "Domingo",   en: "Sunday",    id: "Minggu" },
 
+  // ---------------- Dashboard: Reglas de asistencia ----------------
+  "dash.company.rulesTitle": { es: "Reglas de asistencia", en: "Attendance rules", id: "Aturan kehadiran" },
+  "dash.company.rulesHint": {
+    es: "Configura la tolerancia de llegada tardía y el tiempo mínimo para que las horas extras se contabilicen.",
+    en: "Set the late arrival grace period and the minimum time for overtime to be counted.",
+    id: "Atur toleransi keterlambatan dan waktu minimum agar lembur dihitung.",
+  },
+  "dash.company.graceLabel":      { es: "Tolerancia de llegada tardía (minutos)", en: "Late arrival grace period (minutes)", id: "Toleransi keterlambatan (menit)" },
+  "dash.company.graceHint":       { es: "Si el empleado llega dentro de este margen, sus horas cuentan desde la hora programada.", en: "If the employee arrives within this margin, hours count from the scheduled time.", id: "Jika karyawan datang dalam margin ini, jam dihitung dari waktu terjadwal." },
+  "dash.company.overtimeMinLabel": { es: "Mínimo de horas extras por sesión (minutos)", en: "Minimum overtime per session (minutes)", id: "Minimum lembur per sesi (menit)" },
+  "dash.company.overtimeMinHint":  { es: "Las horas extras menores a este valor en una sola sesión no se contabilizan.", en: "Overtime shorter than this value in a single session is not counted.", id: "Lembur yang kurang dari nilai ini dalam satu sesi tidak dihitung." },
+  "dash.company.rulesSave":   { es: "Guardar reglas", en: "Save rules", id: "Simpan aturan" },
+  "dash.company.rulesSaved":  { es: "Reglas guardadas.", en: "Rules saved.", id: "Aturan disimpan." },
+  "dash.company.rulesErrSave": { es: "No se pudo guardar: {msg}", en: "Couldn't save: {msg}", id: "Gagal menyimpan: {msg}" },
+
   // ---------------- Dashboard: Cambiar contraseña ----------------
   "dash.company.pwTitle":   { es: "Cambiar contraseña", en: "Change password", id: "Ganti kata sandi" },
   "dash.company.pwHint":    { es: "Tu contraseña se almacena de forma segura en Supabase, nunca en este sitio.", en: "Your password is stored securely in Supabase, never on this site.", id: "Kata sandimu disimpan dengan aman di Supabase, tidak pernah di situs ini." },
