@@ -14,6 +14,14 @@ const SCHEDULE_DAY_KEYS = [
 
 const $ = (sel) => document.querySelector(sel);
 const fmtMoney = (n) => n.toString();
+const fmtHours = (totalMinutes) => {
+  const mins = Math.round(totalMinutes);
+  const h = Math.floor(mins / 60);
+  const m = mins % 60;
+  if (h === 0) return `${m}m`;
+  if (m === 0) return `${h}h`;
+  return `${h}h ${m}m`;
+};
 
 // ---------------------------------------------------------------------
 // 0. Autenticación / carga inicial
@@ -437,12 +445,32 @@ function scheduleWindowUTC(dateKey) {
   };
 }
 
+// Rounds a Date to the nearest 30-minute mark for payment purposes.
+// [0–14 min] → :00, [15–44 min] → :30, [45–59 min] → next :00
+function roundToHalfHour(date) {
+  const mins = date.getMinutes();
+  const result = new Date(date);
+  result.setSeconds(0, 0);
+  if (mins < 15) {
+    result.setMinutes(0);
+  } else if (mins < 45) {
+    result.setMinutes(30);
+  } else {
+    result.setMinutes(0);
+    result.setHours(result.getHours() + 1);
+  }
+  return result;
+}
+
 // Splits a check_in→check_out session into regular and overtime segments
 // using the company's work schedule for the day. Returns an array of
 // { type: "regular"|"overtime", start: Date, end: Date } parts.
 function splitSessionParts(checkInAt, checkOutAt, dateKey) {
-  const sessionStart = new Date(checkInAt);
-  const sessionEnd   = new Date(checkOutAt);
+  const sessionStart = roundToHalfHour(new Date(checkInAt));
+  const sessionEnd   = roundToHalfHour(new Date(checkOutAt));
+
+  // If rounding collapses the session to zero duration, discard it
+  if (sessionStart >= sessionEnd) return [];
   const win = scheduleWindowUTC(dateKey);
 
   if (!win) return [{ type: "overtime", start: sessionStart, end: sessionEnd }];
@@ -529,8 +557,8 @@ async function renderCalendarView(groupedForFilter) {
         }
       });
     });
-    const overtimeHoursLabel = (overtimeMinutes / 60).toLocaleString(currentLocale(), { minimumFractionDigits: 1, maximumFractionDigits: 1 });
-    const regularHoursLabel = (regularMinutes / 60).toLocaleString(currentLocale(), { minimumFractionDigits: 1, maximumFractionDigits: 1 });
+    const overtimeHoursLabel = fmtHours(overtimeMinutes);
+    const regularHoursLabel = fmtHours(regularMinutes);
 
     const weeksHtml = weeks.map((week) => week.map((cell) => {
       const dateKey = dateKeyLocal(cell.date);
@@ -563,8 +591,7 @@ async function renderCalendarView(groupedForFilter) {
             }
           });
           if (dayOvertimeMinutes > 0) {
-            const dayOtLabel = (dayOvertimeMinutes / 60).toLocaleString(currentLocale(), { minimumFractionDigits: 1, maximumFractionDigits: 1 });
-            inner += `<div class="cal-day-ot-total">${t("dash.cal.totalOvertime")}: ${dayOtLabel} h</div>`;
+            inner += `<div class="cal-day-ot-total">${t("dash.cal.totalOvertime")}: ${fmtHours(dayOvertimeMinutes)}</div>`;
           }
         } else if (onVacation && !isWeekend && !isHoliday) {
           inner += `<div class="cal-vacation-tag">${t("dash.cal.vacationTag")}</div>`;
@@ -577,7 +604,7 @@ async function renderCalendarView(groupedForFilter) {
       <div class="emp-group cal-emp-group${targetEmployees.length === 1 ? "" : " collapsed"}">
         <button type="button" class="emp-group-summary" data-emp-toggle>
           <span>${escapeHtml(emp.full_name)} <span class="emp-group-meta">${escapeHtml(emp.email)}</span></span>
-          <span class="emp-group-meta">${t("dash.cal.totalRegular")}: ${regularHoursLabel} h · <strong style="color:var(--stamp)">${t("dash.cal.totalOvertime")}: ${overtimeHoursLabel} h</strong></span>
+          <span class="emp-group-meta">${t("dash.cal.totalRegular")}: ${regularHoursLabel} · <strong style="color:var(--stamp)">${t("dash.cal.totalOvertime")}: ${overtimeHoursLabel}</strong></span>
         </button>
         <div class="emp-group-body">
           <div class="cal-month-title">${monthTitle}</div>
