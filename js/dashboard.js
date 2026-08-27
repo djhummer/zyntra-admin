@@ -466,10 +466,9 @@ function roundToHalfHour(date) {
 // using the company's work schedule for the day. Returns an array of
 // { type: "regular"|"overtime", start: Date, end: Date } parts.
 function splitSessionParts(checkInAt, checkOutAt, dateKey) {
-  const sessionStart = roundToHalfHour(new Date(checkInAt));
-  const sessionEnd   = roundToHalfHour(new Date(checkOutAt));
+  const sessionStart = new Date(checkInAt);
+  const sessionEnd   = new Date(checkOutAt);
 
-  // If rounding collapses the session to zero duration, discard it
   if (sessionStart >= sessionEnd) return [];
   const win = scheduleWindowUTC(dateKey);
 
