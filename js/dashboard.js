@@ -549,11 +549,13 @@ async function renderCalendarView(groupedForFilter) {
     Object.values(empData).forEach((dayGroup) => {
       dayGroup.sessions.forEach((s) => {
         if (!s.checkIn || !s.checkOut) return;
+        let sessionOtMinutes = 0;
         for (const part of splitSessionParts(s.checkIn.recorded_at, s.checkOut.recorded_at, dayGroup.date)) {
           const mins = (part.end - part.start) / 60000;
-          if (part.type === "overtime") overtimeMinutes += mins;
+          if (part.type === "overtime") sessionOtMinutes += mins;
           else regularMinutes += mins;
         }
+        if (sessionOtMinutes > 0) overtimeMinutes += Math.round(sessionOtMinutes / 30) * 30;
       });
     });
     const overtimeHoursLabel = fmtHours(overtimeMinutes);
@@ -579,10 +581,12 @@ async function renderCalendarView(groupedForFilter) {
           let dayOvertimeMinutes = 0;
           g.sessions.forEach((s) => {
             if (s.checkIn && s.checkOut) {
+              let sessionOtMinutes = 0;
               for (const part of splitSessionParts(s.checkIn.recorded_at, s.checkOut.recorded_at, g.date)) {
                 inner += `<div class="cal-bar ${part.type}">${fmtTime(part.start.toISOString())}–${fmtTime(part.end.toISOString())}</div>`;
-                if (part.type === "overtime") dayOvertimeMinutes += (part.end - part.start) / 60000;
+                if (part.type === "overtime") sessionOtMinutes += (part.end - part.start) / 60000;
               }
+              if (sessionOtMinutes > 0) dayOvertimeMinutes += Math.round(sessionOtMinutes / 30) * 30;
             } else if (s.checkIn) {
               inner += `<div class="cal-bar incomplete">${fmtTime(s.checkIn.recorded_at)} ${t("dash.cal.noSalida")}</div>`;
             } else if (s.checkOut) {
