@@ -320,6 +320,19 @@
       </p>
       <button class="btn btn-stamp" id="btn-download-backup" data-i18n="dash.backup.button">Descargar respaldo completo</button>
       <p id="backup-status" class="hint" style="margin-top:14px"></p>
+
+      <hr style="margin:28px 0; border:none; border-top:1px solid var(--line)">
+      <h2 style="font-size:1.1rem; font-weight:700; color:var(--ink); margin-bottom:8px" data-i18n="dash.backup.restoreTitle">Restaurar desde respaldo</h2>
+      <p class="hint" style="margin-bottom:16px" data-i18n="dash.backup.restoreHint"></p>
+      <div style="display:flex; align-items:center; gap:12px; flex-wrap:wrap">
+        <label class="btn btn-ghost" style="cursor:pointer">
+          <span data-i18n="dash.backup.restoreChoose">Elegir archivo de respaldo</span>
+          <input type="file" id="restore-file-input" accept=".json" style="display:none">
+        </label>
+        <span id="restore-file-name" class="hint"></span>
+      </div>
+      <button class="btn btn-stamp" id="btn-restore-backup" style="margin-top:12px; display:none" data-i18n="dash.backup.restoreConfirmBtn">Restaurar datos</button>
+      <p id="restore-status" class="hint" style="margin-top:14px"></p>
     </section>
 
   </main>

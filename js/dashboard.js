@@ -882,6 +882,81 @@ async function loadHolidays() {
 // ---------------------------------------------------------------------
 // 5. Respaldo
 // ---------------------------------------------------------------------
+async function restoreBackup(file) {
+  const status = $("#restore-status");
+  status.textContent = t("dash.backup.restoreLoading");
+  status.style.color = "";
+
+  let backup;
+  try {
+    backup = JSON.parse(await file.text());
+  } catch (e) {
+    status.textContent = t("dash.backup.restoreErrParse", { msg: e.message });
+    status.style.color = "var(--stamp)";
+    return;
+  }
+
+  if (!backup.company || !Array.isArray(backup.employees) || !Array.isArray(backup.attendance_records)) {
+    status.textContent = t("dash.backup.restoreErrInvalid");
+    status.style.color = "var(--stamp)";
+    return;
+  }
+  if (backup.company.id !== company.id) {
+    status.textContent = t("dash.backup.restoreErrWrongCompany");
+    status.style.color = "var(--stamp)";
+    return;
+  }
+
+  const backupDate = (backup.generated_at || "").slice(0, 10) || "?";
+  if (!confirm(t("dash.backup.restoreConfirm", { date: backupDate }))) {
+    status.textContent = "";
+    return;
+  }
+
+  let failedTables = 0;
+
+  // 1. Profiles (employees)
+  if (backup.employees.length) {
+    const { error } = await supabase.from("profiles").upsert(backup.employees, { onConflict: "id" });
+    if (error) { failedTables++; console.error("restore profiles:", error); }
+  }
+
+  // 2. Attendance records (in chunks of 200 to avoid payload limits)
+  if (backup.attendance_records.length) {
+    const CHUNK = 200;
+    for (let i = 0; i < backup.attendance_records.length; i += CHUNK) {
+      const { error } = await supabase.from("attendance_records")
+        .upsert(backup.attendance_records.slice(i, i + CHUNK), { onConflict: "id" });
+      if (error) { failedTables++; console.error("restore attendance_records:", error); break; }
+    }
+  }
+
+  // 3. Vacations
+  if ((backup.vacations || []).length) {
+    const { error } = await supabase.from("vacations").upsert(backup.vacations, { onConflict: "id" });
+    if (error) { failedTables++; console.error("restore vacations:", error); }
+  }
+
+  // 4. Custom holidays only (skip national ones that already exist globally)
+  const customHolidays = (backup.holidays || []).filter((h) => h.company_id === company.id);
+  if (customHolidays.length) {
+    const { error } = await supabase.from("holidays").upsert(customHolidays, { onConflict: "id" });
+    if (error) { failedTables++; console.error("restore holidays:", error); }
+  }
+
+  if (failedTables === 0) {
+    status.textContent = t("dash.backup.restoreDone", {
+      emp: backup.employees.length,
+      att: backup.attendance_records.length,
+    });
+    status.style.color = "var(--ok)";
+    await loadEmployees();
+  } else {
+    status.textContent = t("dash.backup.restorePartial", { failed: failedTables });
+    status.style.color = "var(--stamp)";
+  }
+}
+
 async function downloadBackup() {
   const status = $("#backup-status");
   status.textContent = t("dash.backup.generating");
@@ -968,6 +1043,25 @@ function setupFormHandlers() {
   $("#vac-end").addEventListener("change", recalcVacDays);
 
   $("#btn-download-backup").addEventListener("click", downloadBackup);
+
+  $("#restore-file-input").addEventListener("change", (e) => {
+    const file = e.target.files[0];
+    const nameEl = $("#restore-file-name");
+    const btn = $("#btn-restore-backup");
+    if (file) {
+      nameEl.textContent = file.name;
+      btn.style.display = "inline-block";
+      btn.dataset.pendingFile = "1";
+    } else {
+      nameEl.textContent = "";
+      btn.style.display = "none";
+    }
+  });
+
+  $("#btn-restore-backup").addEventListener("click", () => {
+    const file = $("#restore-file-input").files[0];
+    if (file) restoreBackup(file);
+  });
 
   $("#btn-upload-logo").addEventListener("click", () => $("#logo-file-input").click());
   $("#logo-file-input").addEventListener("change", (e) => {

@@ -259,6 +259,21 @@ const dict = {
   "dash.backup.generating": { es: "Generando respaldo…", en: "Generating backup…", id: "Membuat cadangan…" },
   "dash.backup.errGenerating": { es: "Error generando el respaldo: {msg}", en: "Error generating the backup: {msg}", id: "Gagal membuat cadangan: {msg}" },
   "dash.backup.done": { es: "Listo — respaldo descargado con {emp} empleados y {att} marcas de asistencia.", en: "Done — backup downloaded with {emp} employees and {att} attendance records.", id: "Selesai — cadangan berhasil diunduh dengan {emp} karyawan dan {att} catatan kehadiran." },
+  "dash.backup.restoreTitle": { es: "Restaurar desde respaldo", en: "Restore from backup", id: "Pulihkan dari cadangan" },
+  "dash.backup.restoreHint": {
+    es: "Sube un archivo JSON generado con 'Descargar respaldo completo' para recuperar empleados, asistencias, vacaciones y festivos propios. ⚠️ Si las cuentas de Auth (usuarios de Supabase) fueron eliminadas, los perfiles de empleados no pueden restaurarse automáticamente — solo los demás datos.",
+    en: "Upload a JSON file generated with 'Download full backup' to recover employees, attendance records, vacations and custom holidays. ⚠️ If Auth accounts (Supabase users) were deleted, employee profiles cannot be restored automatically — only the other data.",
+    id: "Unggah file JSON dari 'Unduh cadangan lengkap' untuk memulihkan karyawan, catatan kehadiran, cuti, dan hari libur khusus. ⚠️ Jika akun Auth (pengguna Supabase) dihapus, profil karyawan tidak dapat dipulihkan otomatis — hanya data lainnya.",
+  },
+  "dash.backup.restoreChoose":     { es: "Elegir archivo de respaldo", en: "Choose backup file", id: "Pilih file cadangan" },
+  "dash.backup.restoreConfirmBtn": { es: "Restaurar datos", en: "Restore data", id: "Pulihkan data" },
+  "dash.backup.restoreConfirm":    { es: "¿Restaurar datos del respaldo del {date}? Los registros existentes se mantendrán; solo se añadirán o actualizarán los del archivo.", en: "Restore data from the {date} backup? Existing records will be kept; only records from the file will be added or updated.", id: "Pulihkan data dari cadangan tanggal {date}? Data yang ada akan tetap; hanya data dari file yang akan ditambah atau diperbarui." },
+  "dash.backup.restoreLoading":    { es: "Restaurando…", en: "Restoring…", id: "Memulihkan…" },
+  "dash.backup.restoreErrInvalid": { es: "Archivo inválido — no parece un respaldo de ZyntrAbsen.", en: "Invalid file — doesn't look like a ZyntrAbsen backup.", id: "File tidak valid — bukan cadangan ZyntrAbsen." },
+  "dash.backup.restoreErrWrongCompany": { es: "Este respaldo pertenece a otra empresa y no se puede restaurar aquí.", en: "This backup belongs to a different company and cannot be restored here.", id: "Cadangan ini milik perusahaan lain dan tidak dapat dipulihkan di sini." },
+  "dash.backup.restoreErrParse":   { es: "Error al leer el archivo: {msg}", en: "Error reading the file: {msg}", id: "Gagal membaca file: {msg}" },
+  "dash.backup.restoreDone":       { es: "✓ Restauración completa — {emp} empleados y {att} registros de asistencia procesados.", en: "✓ Restore complete — {emp} employees and {att} attendance records processed.", id: "✓ Pemulihan selesai — {emp} karyawan dan {att} catatan kehadiran diproses." },
+  "dash.backup.restorePartial":    { es: "Restauración parcial — {failed} tabla(s) con errores. Revisa la consola del navegador para más detalles.", en: "Partial restore — {failed} table(s) had errors. Check the browser console for details.", id: "Pemulihan sebagian — {failed} tabel mengalami kesalahan. Periksa konsol browser untuk detailnya." },
 
   // ---------------- Dashboard: Empresa (logo) ----------------
   "dash.company.title": { es: "Configuración de la empresa", en: "Company settings", id: "Pengaturan perusahaan" },
