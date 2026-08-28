@@ -504,13 +504,15 @@ function splitSessionParts(checkInAt, checkOutAt, dateKey, isHoliday = false) {
 }
 
 // Returns how many minutes late a check-in was (0 if on time, no schedule, or holiday).
+// A check-in at or after the scheduled end is an overtime session — not a late arrival.
 function calcLateMinutes(checkInAt, dateKey, isHoliday = false) {
   if (isHoliday) return 0;
   const win = scheduleWindowUTC(dateKey);
   if (!win) return 0;
+  const checkIn = new Date(checkInAt);
+  if (checkIn >= win.end) return 0; // overtime session, not a late regular check-in
   const graceMs = (company.late_grace_minutes ?? 0) * 60000;
   const deadline = new Date(win.start.getTime() + graceMs);
-  const checkIn = new Date(checkInAt);
   return checkIn > deadline ? (checkIn - deadline) / 60000 : 0;
 }
 
