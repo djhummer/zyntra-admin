@@ -1686,7 +1686,9 @@ async function loadOvertimeSubmissions() {
     .select(`id, employee_id, year, month, sessions, weekday_hours, holiday_hours,
              base_salary, ot_rate_weekday_pct, ot_rate_holiday_pct,
              weekday_amount, holiday_amount, total_amount, status,
-             authorizer_name, reviewer_name, rejection_note, submitted_at, updated_at,
+             authorizer_name, authorizer_position,
+             reviewer_name, reviewer_subtitle, reviewer_position,
+             rejection_note, submitted_at, updated_at,
              profiles(full_name, department)`)
     .eq("company_id", company.id)
     .order("submitted_at", { ascending: false, nullsFirst: false });
@@ -1814,18 +1816,50 @@ function renderOvertimeList() {
         </div>
 
         <!-- Approval fields -->
-        <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:14px">
-          <div class="field">
-            <label style="font-size:12px;font-weight:600;text-transform:uppercase;letter-spacing:.04em;color:var(--text-muted);display:block;margin-bottom:4px">${t("dash.ot.authorizerName")}</label>
-            <input type="text" id="ot-authorizer-${s.id}" value="${escapeHtml(s.authorizer_name || "")}"
-              placeholder="${t("dash.ot.authorizerPlaceholder")}" ${!isEditable ? "readonly" : ""}
-              style="width:100%;padding:7px 10px;border:1px solid var(--line);border-radius:4px;font-size:13px;background:${isEditable ? "var(--paper)" : "#F5F1E8"}" />
+        <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;margin-bottom:14px">
+          <!-- Quien Autoriza (Yang Memberi Perintah) -->
+          <div>
+            <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.04em;color:var(--text-muted);margin-bottom:6px;padding-bottom:4px;border-bottom:1px solid var(--line)">${t("dash.ot.authorizerName")}</div>
+            <div class="field" style="margin-bottom:6px">
+              <label style="font-size:11px;color:var(--text-muted)">Nombre</label>
+              <input type="text" id="ot-authorizer-${s.id}" value="${escapeHtml(s.authorizer_name || "")}"
+                placeholder="${t("dash.ot.authorizerPlaceholder")}" ${!isEditable ? "readonly" : ""}
+                style="width:100%;padding:6px 8px;border:1px solid var(--line);border-radius:4px;font-size:13px;background:${isEditable ? "var(--paper)" : "#F5F1E8"}" />
+            </div>
+            <div class="field">
+              <label style="font-size:11px;color:var(--text-muted)">${t("dash.ot.position")}</label>
+              <input type="text" id="ot-authorizer-pos-${s.id}" value="${escapeHtml(s.authorizer_position || "")}"
+                placeholder="${t("dash.ot.positionPlaceholder")}" ${!isEditable ? "readonly" : ""}
+                style="width:100%;padding:6px 8px;border:1px solid var(--line);border-radius:4px;font-size:13px;background:${isEditable ? "var(--paper)" : "#F5F1E8"}" />
+            </div>
           </div>
-          <div class="field">
-            <label style="font-size:12px;font-weight:600;text-transform:uppercase;letter-spacing:.04em;color:var(--text-muted);display:block;margin-bottom:4px">${t("dash.ot.reviewerName")}</label>
-            <input type="text" id="ot-reviewer-${s.id}" value="${escapeHtml(s.reviewer_name || "")}"
-              placeholder="${t("dash.ot.reviewerPlaceholder")}" ${!isEditable ? "readonly" : ""}
-              style="width:100%;padding:7px 10px;border:1px solid var(--line);border-radius:4px;font-size:13px;background:${isEditable ? "var(--paper)" : "#F5F1E8"}" />
+          <!-- Visto Bueno / Mengetahui -->
+          <div>
+            <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.04em;color:var(--text-muted);margin-bottom:6px;padding-bottom:4px;border-bottom:1px solid var(--line)">${t("dash.ot.reviewerName")}</div>
+            <div class="field" style="margin-bottom:6px">
+              <label style="font-size:11px;color:var(--text-muted)">Nombre</label>
+              <input type="text" id="ot-reviewer-${s.id}" value="${escapeHtml(s.reviewer_name || "")}"
+                placeholder="${t("dash.ot.reviewerPlaceholder")}" ${!isEditable ? "readonly" : ""}
+                style="width:100%;padding:6px 8px;border:1px solid var(--line);border-radius:4px;font-size:13px;background:${isEditable ? "var(--paper)" : "#F5F1E8"}" />
+            </div>
+            <div class="field" style="margin-bottom:6px">
+              <label style="font-size:11px;color:var(--text-muted)">${t("dash.ot.reviewerSubtitle")}</label>
+              <input type="text" id="ot-reviewer-sub-${s.id}" value="${escapeHtml(s.reviewer_subtitle || "")}"
+                placeholder="${t("dash.ot.reviewerSubtitlePlaceholder")}" ${!isEditable ? "readonly" : ""}
+                style="width:100%;padding:6px 8px;border:1px solid var(--line);border-radius:4px;font-size:13px;background:${isEditable ? "var(--paper)" : "#F5F1E8"}" />
+            </div>
+            <div class="field">
+              <label style="font-size:11px;color:var(--text-muted)">${t("dash.ot.position")}</label>
+              <input type="text" id="ot-reviewer-pos-${s.id}" value="${escapeHtml(s.reviewer_position || "")}"
+                placeholder="${t("dash.ot.positionPlaceholder")}" ${!isEditable ? "readonly" : ""}
+                style="width:100%;padding:6px 8px;border:1px solid var(--line);border-radius:4px;font-size:13px;background:${isEditable ? "var(--paper)" : "#F5F1E8"}" />
+            </div>
+          </div>
+          <!-- Empleado (read-only info) -->
+          <div>
+            <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.04em;color:var(--text-muted);margin-bottom:6px;padding-bottom:4px;border-bottom:1px solid var(--line)">${t("dash.ot.employee")}</div>
+            <div style="font-size:13px;font-weight:700;color:var(--ink);margin-bottom:4px">${escapeHtml(empName)}</div>
+            <div style="font-size:12px;color:var(--text-muted)">${escapeHtml(dept)}</div>
           </div>
         </div>
 
@@ -1869,20 +1903,25 @@ function renderOvertimeList() {
   $("#ot-filter-month")?.addEventListener("change", renderOvertimeList);
 }
 
+function readOtFields(subId) {
+  return {
+    authorizer_name:     $(`#ot-authorizer-${subId}`)?.value?.trim()     || "",
+    authorizer_position: $(`#ot-authorizer-pos-${subId}`)?.value?.trim() || "",
+    reviewer_name:       $(`#ot-reviewer-${subId}`)?.value?.trim()       || "",
+    reviewer_subtitle:   $(`#ot-reviewer-sub-${subId}`)?.value?.trim()   || "",
+    reviewer_position:   $(`#ot-reviewer-pos-${subId}`)?.value?.trim()   || "",
+  };
+}
+
 async function handleOtApprove(subId) {
   const statusEl = $(`#ot-action-status-${subId}`);
   statusEl.textContent = t("common.loading");
-  const authName = $(`#ot-authorizer-${subId}`)?.value?.trim() || "";
-  const revName  = $(`#ot-reviewer-${subId}`)?.value?.trim()  || "";
 
   const { error } = await supabase.from("overtime_submissions")
-    .update({ status: "approved", authorizer_name: authName, reviewer_name: revName, approved_at: new Date().toISOString() })
+    .update({ status: "approved", ...readOtFields(subId), approved_at: new Date().toISOString() })
     .eq("id", subId);
 
   if (error) { statusEl.textContent = "✗ " + error.message; statusEl.style.color = "var(--stamp)"; return; }
-
-  const sub = otSubmissions.find(s => s.id === subId);
-  if (sub) { sub.status = "approved"; sub.authorizer_name = authName; sub.reviewer_name = revName; }
   await loadOvertimeSubmissions();
 }
 
@@ -1891,15 +1930,12 @@ async function handleOtReject(subId) {
   if (note === null) return;
   const statusEl = $(`#ot-action-status-${subId}`);
   statusEl.textContent = t("common.loading");
-  const authName = $(`#ot-authorizer-${subId}`)?.value?.trim() || "";
-  const revName  = $(`#ot-reviewer-${subId}`)?.value?.trim()  || "";
 
   const { error } = await supabase.from("overtime_submissions")
-    .update({ status: "rejected", authorizer_name: authName, reviewer_name: revName, rejection_note: note })
+    .update({ status: "rejected", ...readOtFields(subId), rejection_note: note })
     .eq("id", subId);
 
   if (error) { statusEl.textContent = "✗ " + error.message; statusEl.style.color = "var(--stamp)"; return; }
-
   await loadOvertimeSubmissions();
 }
 

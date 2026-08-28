@@ -13,8 +13,11 @@ let currentYear = 0;
 let currentMonth = 0;
 let submissionId = null;
 let submissionStatus = 'draft';
-let authorizerName = '';
-let reviewerName   = '';
+let authorizerName     = '';
+let authorizerPosition = '';
+let reviewerName       = '';
+let reviewerSubtitle   = '';
+let reviewerPosition   = '';
 
 const pad = (n) => String(n).padStart(2, '0');
 const esc = (s = '') => String(s).replace(/[&<>"']/g, c =>
@@ -103,7 +106,8 @@ function setupMonthSelect() {
 async function loadMonth(year, month) {
   currentYear = year; currentMonth = month;
   submissionId = null; submissionStatus = 'draft';
-  authorizerName = ''; reviewerName = '';
+  authorizerName = ''; authorizerPosition = '';
+  reviewerName   = ''; reviewerSubtitle   = ''; reviewerPosition = '';
   sessions = [];
 
   const tz = company.timezone;
@@ -137,10 +141,13 @@ async function loadMonth(year, month) {
   holidaySet = new Set((holRes.data || []).map(h => h.date));
 
   if (subRes.data?.sessions?.length) {
-    submissionId     = subRes.data.id;
-    submissionStatus = subRes.data.status;
-    authorizerName   = subRes.data.authorizer_name || '';
-    reviewerName     = subRes.data.reviewer_name   || '';
+    submissionId       = subRes.data.id;
+    submissionStatus   = subRes.data.status;
+    authorizerName     = subRes.data.authorizer_name     || '';
+    authorizerPosition = subRes.data.authorizer_position || '';
+    reviewerName       = subRes.data.reviewer_name       || '';
+    reviewerSubtitle   = subRes.data.reviewer_subtitle   || '';
+    reviewerPosition   = subRes.data.reviewer_position   || '';
     sessions = subRes.data.sessions;
   } else {
     sessions = buildFromRecords(recRes.data || [], tz);
@@ -472,24 +479,29 @@ function doPrint() {
         <div style="margin-top:2pt"><strong>${t('portal.printOTPay')} = ${cur} ${fmt2(total)}</strong></div>
       </div>
 
-      <div class="print-sigs">
-        <div class="print-sig-cell">
-          <div class="print-sig-line">
-            ${authorizerName ? `<div><strong>${esc(authorizerName)}</strong></div>` : ''}
-            <div>${t('portal.printSigAuthorizer')}</div>
+      <!-- Top row: Authorizer (left) + Employee (right) -->
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:20pt;margin-top:40pt;font-size:10pt;font-family:'Times New Roman',serif">
+        <div style="text-align:center">
+          <div style="font-weight:bold">${t('portal.printSigAuthTitle')}</div>
+          <div style="margin-top:48pt;border-top:1pt solid #333;padding-top:4pt">
+            <div><strong>${esc(authorizerName)}</strong></div>
+            ${authorizerPosition ? `<div style="font-size:9pt">${esc(authorizerPosition)}</div>` : ''}
           </div>
         </div>
-        <div class="print-sig-cell">
-          <div class="print-sig-line">
-            ${reviewerName ? `<div><strong>${esc(reviewerName)}</strong></div>` : ''}
-            <div>${t('portal.printSigReviewer')}</div>
-          </div>
-        </div>
-        <div class="print-sig-cell">
-          <div class="print-sig-line">
+        <div style="text-align:center">
+          <div style="font-weight:bold">${t('portal.printSigEmpTitle')}</div>
+          <div style="margin-top:48pt;border-top:1pt solid #333;padding-top:4pt">
             <div><strong>${esc(profile.full_name)}</strong></div>
-            <div style="font-size:9pt;color:#555">${t('portal.printSigEmployee')}</div>
           </div>
+        </div>
+      </div>
+      <!-- Bottom center: Reviewer/Approver -->
+      <div style="text-align:center;margin-top:30pt;font-size:10pt;font-family:'Times New Roman',serif;max-width:200pt;margin-left:auto;margin-right:auto">
+        <div style="font-weight:bold">${t('portal.printSigRevTitle')}</div>
+        ${reviewerSubtitle ? `<div style="font-size:9pt;color:#555">${esc(reviewerSubtitle)}</div>` : ''}
+        <div style="margin-top:48pt;border-top:1pt solid #333;padding-top:4pt">
+          <div><strong>${esc(reviewerName)}</strong></div>
+          ${reviewerPosition ? `<div style="font-size:9pt">${esc(reviewerPosition)}</div>` : ''}
         </div>
       </div>
     </div>`;
