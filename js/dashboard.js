@@ -503,6 +503,17 @@ function splitSessionParts(checkInAt, checkOutAt, dateKey, isHoliday = false) {
   return filtered.length ? filtered : [{ type: "regular", start: sessionStart, end: sessionEnd }];
 }
 
+// Returns how many minutes late a check-in was (0 if on time, no schedule, or holiday).
+function calcLateMinutes(checkInAt, dateKey, isHoliday = false) {
+  if (isHoliday) return 0;
+  const win = scheduleWindowUTC(dateKey);
+  if (!win) return 0;
+  const graceMs = (company.late_grace_minutes ?? 0) * 60000;
+  const deadline = new Date(win.start.getTime() + graceMs);
+  const checkIn = new Date(checkInAt);
+  return checkIn > deadline ? (checkIn - deadline) / 60000 : 0;
+}
+
 async function renderCalendarView(groupedForFilter) {
   const container = $("#report-calendar");
   container.innerHTML = `<p class="loading">${t("dash.cal.generating")}</p>`;
@@ -550,6 +561,7 @@ async function renderCalendarView(groupedForFilter) {
 
     let overtimeMinutes = 0;
     let regularMinutes = 0;
+    let totalLateMinutes = 0;
     Object.values(empData).forEach((dayGroup) => {
       dayGroup.sessions.forEach((s) => {
         if (!s.checkIn || !s.checkOut) return;
@@ -561,10 +573,12 @@ async function renderCalendarView(groupedForFilter) {
           else regularMinutes += mins;
         }
         if (sessionOtMinutes > 0) overtimeMinutes += Math.round(sessionOtMinutes / 30) * 30;
+        totalLateMinutes += calcLateMinutes(s.checkIn.recorded_at, dayGroup.date, dayIsHoliday);
       });
     });
     const overtimeHoursLabel = fmtHours(overtimeMinutes);
     const regularHoursLabel = fmtHours(regularMinutes);
+    const lateLabel = fmtHours(Math.round(totalLateMinutes));
 
     const weeksHtml = weeks.map((week) => week.map((cell) => {
       const dateKey = dateKeyLocal(cell.date);
@@ -584,6 +598,7 @@ async function renderCalendarView(groupedForFilter) {
         if (isHoliday) inner += `<div class="cal-holiday-tag">${t("dash.cal.holidayTag")}</div>`;
         if (g && g.sessions.length) {
           let dayOvertimeMinutes = 0;
+          let dayLateMinutes = 0;
           g.sessions.forEach((s) => {
             if (s.checkIn && s.checkOut) {
               let sessionOtMinutes = 0;
@@ -592,14 +607,19 @@ async function renderCalendarView(groupedForFilter) {
                 if (part.type === "overtime") sessionOtMinutes += (part.end - part.start) / 60000;
               }
               if (sessionOtMinutes > 0) dayOvertimeMinutes += Math.round(sessionOtMinutes / 30) * 30;
+              dayLateMinutes += calcLateMinutes(s.checkIn.recorded_at, g.date, isHoliday);
             } else if (s.checkIn) {
               inner += `<div class="cal-bar incomplete">${fmtTime(s.checkIn.recorded_at)} ${t("dash.cal.noSalida")}</div>`;
+              dayLateMinutes += calcLateMinutes(s.checkIn.recorded_at, g.date, isHoliday);
             } else if (s.checkOut) {
               inner += `<div class="cal-bar incomplete">${t("dash.cal.noEntrada")} ${fmtTime(s.checkOut.recorded_at)}</div>`;
             }
           });
           if (dayOvertimeMinutes > 0) {
             inner += `<div class="cal-day-ot-total">${t("dash.cal.totalOvertime")}: ${fmtHours(dayOvertimeMinutes)}</div>`;
+          }
+          if (dayLateMinutes > 0) {
+            inner += `<div class="cal-day-late-total">${t("dash.cal.totalLate")}: ${fmtHours(Math.round(dayLateMinutes))}</div>`;
           }
         } else if (onVacation && !isWeekend && !isHoliday) {
           inner += `<div class="cal-vacation-tag">${t("dash.cal.vacationTag")}</div>`;
@@ -612,7 +632,7 @@ async function renderCalendarView(groupedForFilter) {
       <div class="emp-group cal-emp-group${targetEmployees.length === 1 ? "" : " collapsed"}">
         <button type="button" class="emp-group-summary" data-emp-toggle>
           <span>${escapeHtml(emp.full_name)} <span class="emp-group-meta">${escapeHtml(emp.email)}</span></span>
-          <span class="emp-group-meta">${t("dash.cal.totalRegular")}: ${regularHoursLabel} · <strong style="color:var(--stamp)">${t("dash.cal.totalOvertime")}: ${overtimeHoursLabel}</strong></span>
+          <span class="emp-group-meta">${t("dash.cal.totalRegular")}: ${regularHoursLabel} · <strong style="color:var(--stamp)">${t("dash.cal.totalOvertime")}: ${overtimeHoursLabel}</strong>${totalLateMinutes > 0 ? ` · <span style="color:#B23A3A">${t("dash.cal.totalLate")}: ${lateLabel}</span>` : ""}</span>
         </button>
         <div class="emp-group-body">
           <div class="cal-month-title">${monthTitle}</div>
