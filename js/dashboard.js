@@ -565,17 +565,21 @@ async function renderCalendarView(groupedForFilter) {
     let regularMinutes = 0;
     let totalLateMinutes = 0;
     Object.values(empData).forEach((dayGroup) => {
+      const dayIsHoliday = holidaySet.has(dayGroup.date);
+      let lateCalcDone = false; // tardanza = only first check-in of the day
       dayGroup.sessions.forEach((s) => {
         if (!s.checkIn || !s.checkOut) return;
         let sessionOtMinutes = 0;
-        const dayIsHoliday = holidaySet.has(dayGroup.date);
         for (const part of splitSessionParts(s.checkIn.recorded_at, s.checkOut.recorded_at, dayGroup.date, dayIsHoliday)) {
           const mins = (part.end - part.start) / 60000;
           if (part.type === "overtime") sessionOtMinutes += mins;
           else regularMinutes += mins;
         }
         if (sessionOtMinutes > 0) overtimeMinutes += Math.round(sessionOtMinutes / 30) * 30;
-        totalLateMinutes += calcLateMinutes(s.checkIn.recorded_at, dayGroup.date, dayIsHoliday);
+        if (!lateCalcDone) {
+          totalLateMinutes += calcLateMinutes(s.checkIn.recorded_at, dayGroup.date, dayIsHoliday);
+          lateCalcDone = true;
+        }
       });
     });
     const overtimeHoursLabel = fmtHours(overtimeMinutes);
@@ -601,6 +605,7 @@ async function renderCalendarView(groupedForFilter) {
         if (g && g.sessions.length) {
           let dayOvertimeMinutes = 0;
           let dayLateMinutes = 0;
+          let dayLateCalcDone = false; // tardanza = only first check-in of the day
           g.sessions.forEach((s) => {
             if (s.checkIn && s.checkOut) {
               let sessionOtMinutes = 0;
@@ -609,10 +614,16 @@ async function renderCalendarView(groupedForFilter) {
                 if (part.type === "overtime") sessionOtMinutes += (part.end - part.start) / 60000;
               }
               if (sessionOtMinutes > 0) dayOvertimeMinutes += Math.round(sessionOtMinutes / 30) * 30;
-              dayLateMinutes += calcLateMinutes(s.checkIn.recorded_at, g.date, isHoliday);
+              if (!dayLateCalcDone) {
+                dayLateMinutes += calcLateMinutes(s.checkIn.recorded_at, g.date, isHoliday);
+                dayLateCalcDone = true;
+              }
             } else if (s.checkIn) {
               inner += `<div class="cal-bar incomplete">${fmtTime(s.checkIn.recorded_at)} ${t("dash.cal.noSalida")}</div>`;
-              dayLateMinutes += calcLateMinutes(s.checkIn.recorded_at, g.date, isHoliday);
+              if (!dayLateCalcDone) {
+                dayLateMinutes += calcLateMinutes(s.checkIn.recorded_at, g.date, isHoliday);
+                dayLateCalcDone = true;
+              }
             } else if (s.checkOut) {
               inner += `<div class="cal-bar incomplete">${t("dash.cal.noEntrada")} ${fmtTime(s.checkOut.recorded_at)}</div>`;
             }
