@@ -1676,6 +1676,7 @@ async function handleSaveOtRates() {
 // Horas Extras — vista admin
 // ---------------------------------------------------------------------
 let otSubmissions = [];
+let otSessionsMap = {}; // { [subId]: sessions[] } — tracks admin edits
 
 async function loadOvertimeSubmissions() {
   const listEl = $("#ot-list");
@@ -1745,7 +1746,40 @@ function renderOvertimeList() {
     const monthLabel = new Intl.DateTimeFormat("es", { year:"numeric", month:"long" })
       .format(new Date(s.year, s.month - 1, 1));
 
-    const sessionsHtml = (s.sessions || []).map((r, i) => `
+    const isEditable = s.status !== "approved" && s.status !== "rejected";
+
+    // Ensure every session row has a rowId for change tracking
+    const editSessions = (s.sessions || []).map(r => ({ ...r, rowId: r.rowId || crypto.randomUUID() }));
+    otSessionsMap[s.id] = JSON.parse(JSON.stringify(editSessions));
+
+    const sessionsHtml = editSessions.map((r, i) => isEditable ? `
+      <tr data-ot-row="${r.rowId}">
+        <td style="text-align:center;color:var(--text-muted);font-size:12px">${i + 1}</td>
+        <td><input type="date" value="${r.date || ""}" data-ot-session-input data-sub="${s.id}" data-row="${r.rowId}" data-f="date"
+          style="width:120px;padding:4px 6px;border:1px solid var(--line);border-radius:4px;font-size:12px;background:var(--paper)" /></td>
+        <td>
+          <div style="display:flex;align-items:center;gap:3px">
+            <input type="time" value="${r.timeStart || ""}" data-ot-session-input data-sub="${s.id}" data-row="${r.rowId}" data-f="timeStart"
+              style="width:90px;padding:4px 6px;border:1px solid var(--line);border-radius:4px;font-size:12px;background:var(--paper)" />
+            <span style="color:var(--text-muted)">–</span>
+            <input type="time" value="${r.timeEnd || ""}" data-ot-session-input data-sub="${s.id}" data-row="${r.rowId}" data-f="timeEnd"
+              style="width:90px;padding:4px 6px;border:1px solid var(--line);border-radius:4px;font-size:12px;background:var(--paper)" />
+          </div>
+        </td>
+        <td style="text-align:center">
+          <input type="number" value="${r.hours || 0}" min="0" max="24" step="0.5" data-ot-session-input data-sub="${s.id}" data-row="${r.rowId}" data-f="hours"
+            style="width:54px;padding:4px 6px;border:1px solid var(--line);border-radius:4px;font-size:12px;text-align:center;font-family:var(--font-display);background:var(--paper)" />
+        </td>
+        <td>
+          <select data-ot-session-input data-sub="${s.id}" data-row="${r.rowId}" data-f="type"
+            style="padding:4px 6px;border:1px solid var(--line);border-radius:4px;font-size:12px;background:var(--paper);cursor:pointer;color:${r.type === "holiday" ? "var(--overtime)" : "inherit"}">
+            <option value="weekday" ${r.type === "weekday" ? "selected" : ""}>Día hábil</option>
+            <option value="holiday" ${r.type === "holiday" ? "selected" : ""}>Día libre</option>
+          </select>
+        </td>
+        <td><input type="text" value="${escapeHtml(r.description || "")}" data-ot-session-input data-sub="${s.id}" data-row="${r.rowId}" data-f="description"
+          placeholder="Descripción..." style="width:100%;padding:4px 6px;border:1px solid var(--line);border-radius:4px;font-size:12px;background:var(--paper)" /></td>
+      </tr>` : `
       <tr>
         <td style="text-align:center;color:var(--text-muted)">${i + 1}</td>
         <td>${r.date || ""}</td>
@@ -1754,8 +1788,6 @@ function renderOvertimeList() {
         <td style="text-align:center;font-family:var(--font-display)">${r.type === "holiday" ? (r.hours || 0).toFixed(1) : ""}</td>
         <td>${escapeHtml(r.description || "")}</td>
       </tr>`).join("");
-
-    const isEditable = s.status !== "approved";
     const wdPct  = ((parseFloat(s.ot_rate_weekday_pct) || 0) * 100).toFixed(2);
     const holPct = ((parseFloat(s.ot_rate_holiday_pct) || 0) * 100).toFixed(2);
 
@@ -1779,28 +1811,30 @@ function renderOvertimeList() {
 
       <!-- Expandable detail -->
       <div id="ot-detail-${s.id}" style="display:none;border-top:1px solid var(--line);padding:18px 18px 20px">
-        <!-- Sessions table -->
+        <!-- Sessions table (editable when status is submitted/draft) -->
         <div style="overflow-x:auto;margin-bottom:14px">
           <table class="simple-table" style="font-size:13px">
             <thead><tr>
               <th style="width:28px">#</th>
-              <th>Fecha</th><th style="text-align:center">Horario</th>
-              <th style="text-align:center">Día hábil</th>
-              <th style="text-align:center">Día libre</th>
+              <th>Fecha</th>
+              <th style="text-align:center">Horario</th>
+              ${isEditable
+                ? `<th style="text-align:center;width:64px">Horas</th><th>Tipo</th>`
+                : `<th style="text-align:center">Día hábil</th><th style="text-align:center">Día libre</th>`}
               <th>Descripción</th>
             </tr></thead>
-            <tbody>${sessionsHtml || `<tr><td colspan="6" class="hint" style="text-align:center;padding:12px">Sin sesiones</td></tr>`}</tbody>
-            <tfoot><tr style="background:#F1ECDF;font-weight:700">
+            <tbody id="ot-tbody-${s.id}">${sessionsHtml || `<tr><td colspan="6" class="hint" style="text-align:center;padding:12px">Sin sesiones</td></tr>`}</tbody>
+            <tfoot id="ot-tfoot-${s.id}"><tr style="background:#F1ECDF;font-weight:700">
               <td colspan="3" style="text-align:right;padding:6px 10px;font-size:12px">Total</td>
-              <td style="text-align:center;padding:6px 10px">${(parseFloat(s.weekday_hours)||0).toFixed(1)}</td>
-              <td style="text-align:center;padding:6px 10px">${(parseFloat(s.holiday_hours)||0).toFixed(1)}</td>
+              <td style="text-align:center;padding:6px 10px" id="ot-total-wd-${s.id}">${(parseFloat(s.weekday_hours)||0).toFixed(1)}</td>
+              <td style="text-align:center;padding:6px 10px" id="ot-total-hd-${s.id}">${(parseFloat(s.holiday_hours)||0).toFixed(1)}</td>
               <td></td>
             </tr></tfoot>
           </table>
         </div>
 
-        <!-- Calc summary -->
-        <div style="background:var(--paper);border:1px solid var(--line);border-radius:6px;padding:14px 16px;margin-bottom:16px;font-size:13px">
+        <!-- Calc summary (id for live recalc) -->
+        <div id="ot-calc-${s.id}" style="background:var(--paper);border:1px solid var(--line);border-radius:6px;padding:14px 16px;margin-bottom:16px;font-size:13px">
           <div style="display:flex;justify-content:space-between;margin-bottom:4px">
             <span style="color:var(--text-muted)">Días hábiles: ${(parseFloat(s.weekday_hours)||0).toFixed(1)}h × ${wdPct}% × ${cur} ${fmtN(s.base_salary)}</span>
             <span style="font-family:var(--font-display);font-weight:700">${cur} ${fmtN(s.weekday_amount)}</span>
@@ -1857,6 +1891,37 @@ function renderOvertimeList() {
     </div>`;
   }).join("");
 
+  // Wire session input changes (admin can edit sessions before approving)
+  listEl.querySelectorAll("[data-ot-session-input]").forEach(el => {
+    el.addEventListener("change", (e) => {
+      const subId  = e.target.dataset.sub;
+      const rowId  = e.target.dataset.row;
+      const field  = e.target.dataset.f;
+      const rows   = otSessionsMap[subId];
+      if (!rows) return;
+      const row = rows.find(r => r.rowId === rowId);
+      if (!row) return;
+      row[field] = field === "hours" ? (parseFloat(e.target.value) || 0) : e.target.value;
+      // Auto-compute hours from time range
+      if (field === "timeStart" || field === "timeEnd") {
+        const rowEl   = e.target.closest("[data-ot-row]");
+        const startEl = rowEl?.querySelector("[data-f='timeStart']");
+        const endEl   = rowEl?.querySelector("[data-f='timeEnd']");
+        if (startEl?.value && endEl?.value) {
+          const [sh, sm] = startEl.value.split(":").map(Number);
+          const [eh, em] = endEl.value.split(":").map(Number);
+          const mins = (eh * 60 + em) - (sh * 60 + sm);
+          if (mins > 0) {
+            row.hours = Math.round(mins / 60 * 2) / 2;
+            const hoursEl = rowEl?.querySelector("[data-f='hours']");
+            if (hoursEl) hoursEl.value = row.hours;
+          }
+        }
+      }
+      recalcOtCard(subId);
+    });
+  });
+
   // Wire toggle + buttons
   listEl.querySelectorAll("[data-ot-toggle]").forEach(hdr => {
     hdr.addEventListener("click", () => {
@@ -1883,6 +1948,44 @@ function renderOvertimeList() {
   $("#ot-filter-month")?.addEventListener("change", renderOvertimeList);
 }
 
+function recalcOtCard(subId) {
+  const sub = otSubmissions.find(s => s.id === subId);
+  if (!sub) return;
+  const sessions = otSessionsMap[subId] || [];
+  const wRate  = parseFloat(sub.ot_rate_weekday_pct) || 0;
+  const hRate  = parseFloat(sub.ot_rate_holiday_pct) || 0;
+  const salary = parseFloat(sub.base_salary) || 0;
+  const cur    = company.currency || "USD";
+  const wHours = sessions.filter(r => r.type === "weekday").reduce((a, r) => a + (r.hours || 0), 0);
+  const hHours = sessions.filter(r => r.type === "holiday").reduce((a, r) => a + (r.hours || 0), 0);
+  const wAmt   = Math.round(wHours * wRate * salary * 100) / 100;
+  const hAmt   = Math.round(hHours * hRate * salary * 100) / 100;
+  const total  = Math.round((wAmt + hAmt) * 100) / 100;
+  const wdPct  = (wRate * 100).toFixed(2);
+  const holPct = (hRate * 100).toFixed(2);
+
+  const calcEl = $(`#ot-calc-${subId}`);
+  if (calcEl) {
+    calcEl.innerHTML = `
+      <div style="display:flex;justify-content:space-between;margin-bottom:4px">
+        <span style="color:var(--text-muted)">Días hábiles: ${wHours.toFixed(1)}h × ${wdPct}% × ${cur} ${fmtN(salary)}</span>
+        <span style="font-family:var(--font-display);font-weight:700">${cur} ${fmtN(wAmt)}</span>
+      </div>
+      <div style="display:flex;justify-content:space-between;margin-bottom:10px">
+        <span style="color:var(--text-muted)">Días libres: ${hHours.toFixed(1)}h × ${holPct}% × ${cur} ${fmtN(salary)}</span>
+        <span style="font-family:var(--font-display);font-weight:700">${cur} ${fmtN(hAmt)}</span>
+      </div>
+      <div style="display:flex;justify-content:space-between;border-top:2px solid var(--ink);padding-top:10px">
+        <span style="font-weight:700">Horas extras solicitadas</span>
+        <span style="font-family:var(--font-display);font-size:18px;font-weight:700;color:var(--overtime)">${cur} ${fmtN(total)}</span>
+      </div>`;
+  }
+  const wdEl = $(`#ot-total-wd-${subId}`);
+  const hdEl = $(`#ot-total-hd-${subId}`);
+  if (wdEl) wdEl.textContent = wHours.toFixed(1);
+  if (hdEl) hdEl.textContent = hHours.toFixed(1);
+}
+
 function readOtFields(subId) {
   return {
     authorizer_name:     $(`#ot-authorizer-${subId}`)?.value?.trim()     || "",
@@ -1897,8 +2000,26 @@ async function handleOtApprove(subId) {
   const statusEl = $(`#ot-action-status-${subId}`);
   statusEl.textContent = t("common.loading");
 
+  const sub      = otSubmissions.find(s => s.id === subId);
+  const sessions = otSessionsMap[subId] || sub?.sessions || [];
+  const wRate    = parseFloat(sub?.ot_rate_weekday_pct) || 0;
+  const hRate    = parseFloat(sub?.ot_rate_holiday_pct) || 0;
+  const salary   = parseFloat(sub?.base_salary) || 0;
+  const wHours   = sessions.filter(r => r.type === "weekday").reduce((a, r) => a + (r.hours || 0), 0);
+  const hHours   = sessions.filter(r => r.type === "holiday").reduce((a, r) => a + (r.hours || 0), 0);
+  const wAmt     = Math.round(wHours * wRate * salary * 100) / 100;
+  const hAmt     = Math.round(hHours * hRate * salary * 100) / 100;
+  const total    = Math.round((wAmt + hAmt) * 100) / 100;
+
   const { error } = await supabase.from("overtime_submissions")
-    .update({ status: "approved", ...readOtFields(subId), approved_at: new Date().toISOString() })
+    .update({
+      status: "approved",
+      ...readOtFields(subId),
+      sessions,
+      weekday_hours: wHours, holiday_hours: hHours,
+      weekday_amount: wAmt, holiday_amount: hAmt, total_amount: total,
+      approved_at: new Date().toISOString()
+    })
     .eq("id", subId);
 
   if (error) { statusEl.textContent = "✗ " + error.message; statusEl.style.color = "var(--stamp)"; return; }
