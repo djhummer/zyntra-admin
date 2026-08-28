@@ -1083,13 +1083,37 @@ async function restoreBackup(file) {
     if (error) { failedTables++; console.error("restore holidays:", error); }
   }
 
+  // 5. Work schedules
+  if ((backup.work_schedules || []).length) {
+    const { error } = await supabase
+      .from("work_schedules")
+      .upsert(
+        backup.work_schedules.map((s) => ({ ...s, company_id: company.id })),
+        { onConflict: "company_id,day_of_week" }
+      );
+    if (error) { failedTables++; console.error("restore work_schedules:", error); }
+  }
+
+  // 6. Holiday country subscriptions
+  if ((backup.holiday_countries || []).length) {
+    const { error } = await supabase
+      .from("company_holiday_countries")
+      .upsert(
+        backup.holiday_countries.map((h) => ({ ...h, company_id: company.id })),
+        { onConflict: "company_id,country_code" }
+      );
+    if (error) { failedTables++; console.error("restore holiday_countries:", error); }
+  }
+
   if (failedTables === 0) {
     status.textContent = t("dash.backup.restoreDone", {
       emp: backup.employees.length,
       att: backup.attendance_records.length,
+      sch: (backup.work_schedules || []).length,
     });
     status.style.color = "var(--ok)";
     await loadEmployees();
+    await loadWorkSchedules();
   } else {
     status.textContent = t("dash.backup.restorePartial", { failed: failedTables });
     status.style.color = "var(--stamp)";
@@ -1100,23 +1124,37 @@ async function downloadBackup() {
   const status = $("#backup-status");
   status.textContent = t("dash.backup.generating");
 
-  const [empRes, attRes, holRes, vacRes] = await Promise.all([
+  const [empRes, attRes, holRes, vacRes, schRes, holCountriesRes] = await Promise.all([
     supabase.from("profiles").select("*"),
     supabase.from("attendance_records").select("*"),
     supabase.from("holidays").select("*"),
     supabase.from("vacations").select("*"),
+    supabase.from("work_schedules").select("*").eq("company_id", company.id),
+    supabase.from("company_holiday_countries").select("*").eq("company_id", company.id),
   ]);
 
-  const firstError = [empRes, attRes, holRes, vacRes].find((r) => r.error);
+  const firstError = [empRes, attRes, holRes, vacRes, schRes, holCountriesRes].find((r) => r.error);
   if (firstError) { status.textContent = t("dash.backup.errGenerating", { msg: firstError.error.message }); return; }
 
   const backup = {
+    version: 2,
     generated_at: new Date().toISOString(),
-    company: { id: company.id, name: company.name, code: company.code, country_code: company.country_code, timezone: company.timezone },
+    company: {
+      id: company.id,
+      name: company.name,
+      code: company.code,
+      country_code: company.country_code,
+      timezone: company.timezone,
+      late_grace_minutes: company.late_grace_minutes ?? 0,
+      overtime_min_minutes: company.overtime_min_minutes ?? 0,
+      currency: company.currency ?? "USD",
+    },
     employees: empRes.data,
     attendance_records: attRes.data,
     holidays: holRes.data,
     vacations: vacRes.data,
+    work_schedules: schRes.data,
+    holiday_countries: holCountriesRes.data,
   };
 
   const blob = new Blob([JSON.stringify(backup, null, 2)], { type: "application/json" });
@@ -1127,7 +1165,7 @@ async function downloadBackup() {
   a.click();
   URL.revokeObjectURL(url);
 
-  status.textContent = t("dash.backup.done", { emp: empRes.data.length, att: attRes.data.length });
+  status.textContent = t("dash.backup.done", { emp: empRes.data.length, att: attRes.data.length, sch: schRes.data.length });
 }
 
 // ---------------------------------------------------------------------
