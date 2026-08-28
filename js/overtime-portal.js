@@ -32,6 +32,27 @@ function roundTo30min(h, m) {
   }
   return `${pad(h)}:${pad(m)}`;
 }
+
+function roundTimeStr(t) {
+  if (!t) return t;
+  const [h, m] = t.split(':').map(Number);
+  return (!isNaN(h) && !isNaN(m)) ? roundTo30min(h, m) : t;
+}
+
+function applyRounding(rows) {
+  return (rows || []).map(r => {
+    const tS = roundTimeStr(r.timeStart);
+    const tE = roundTimeStr(r.timeEnd);
+    let hours = r.hours || 0;
+    if (tS && tE) {
+      const [sh, sm] = tS.split(':').map(Number);
+      const [eh, em] = tE.split(':').map(Number);
+      const mins = (eh * 60 + em) - (sh * 60 + sm);
+      if (mins > 0) hours = Math.round(mins / 60 * 2) / 2;
+    }
+    return { ...r, timeStart: tS, timeEnd: tE, hours };
+  });
+}
 const esc = (s = '') => String(s).replace(/[&<>"']/g, c =>
   ({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;' }[c]));
 const escAttr = (s = '') => String(s).replace(/"/g, '&quot;');
@@ -160,7 +181,7 @@ async function loadMonth(year, month) {
     reviewerName       = subRes.data.reviewer_name       || '';
     reviewerSubtitle   = subRes.data.reviewer_subtitle   || '';
     reviewerPosition   = subRes.data.reviewer_position   || '';
-    sessions = subRes.data.sessions;
+    sessions = applyRounding(subRes.data.sessions);
   } else {
     sessions = buildFromRecords(recRes.data || [], tz);
   }

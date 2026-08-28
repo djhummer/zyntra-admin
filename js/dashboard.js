@@ -1884,6 +1884,7 @@ function renderOvertimeList() {
           ${isEditable ? `
             <button class="btn btn-primary" data-ot-approve="${s.id}">${t("dash.ot.btnApprove")}</button>
             <button class="btn btn-ghost" data-ot-reject="${s.id}" style="color:var(--stamp)">${t("dash.ot.btnReject")}</button>
+            <button class="btn btn-ghost" data-ot-save-sessions="${s.id}" style="font-size:12px;border-color:var(--line)">💾 Guardar cambios</button>
           ` : `<span class="t-badge ok" style="display:inline-block">${t("dash.ot.statusApproved")}</span>`}
           <span id="ot-action-status-${s.id}" class="hint" style="margin-left:auto;font-size:12px"></span>
         </div>
@@ -1892,34 +1893,35 @@ function renderOvertimeList() {
   }).join("");
 
   // Wire session input changes (admin can edit sessions before approving)
-  listEl.querySelectorAll("[data-ot-session-input]").forEach(el => {
-    el.addEventListener("change", (e) => {
-      const subId  = e.target.dataset.sub;
-      const rowId  = e.target.dataset.row;
-      const field  = e.target.dataset.f;
-      const rows   = otSessionsMap[subId];
-      if (!rows) return;
-      const row = rows.find(r => r.rowId === rowId);
-      if (!row) return;
-      row[field] = field === "hours" ? (parseFloat(e.target.value) || 0) : e.target.value;
-      // Auto-compute hours from time range
-      if (field === "timeStart" || field === "timeEnd") {
-        const rowEl   = e.target.closest("[data-ot-row]");
-        const startEl = rowEl?.querySelector("[data-f='timeStart']");
-        const endEl   = rowEl?.querySelector("[data-f='timeEnd']");
-        if (startEl?.value && endEl?.value) {
-          const [sh, sm] = startEl.value.split(":").map(Number);
-          const [eh, em] = endEl.value.split(":").map(Number);
-          const mins = (eh * 60 + em) - (sh * 60 + sm);
-          if (mins > 0) {
-            row.hours = Math.round(mins / 60 * 2) / 2;
-            const hoursEl = rowEl?.querySelector("[data-f='hours']");
-            if (hoursEl) hoursEl.value = row.hours;
-          }
+  function onAdminSessionChange(e) {
+    const subId = e.target.dataset.sub;
+    const rowId = e.target.dataset.row;
+    const field = e.target.dataset.f;
+    const rows  = otSessionsMap[subId];
+    if (!rows) return;
+    const row = rows.find(r => r.rowId === rowId);
+    if (!row) return;
+    row[field] = field === "hours" ? (parseFloat(e.target.value) || 0) : e.target.value;
+    if (field === "timeStart" || field === "timeEnd") {
+      const rowEl   = e.target.closest("[data-ot-row]");
+      const startEl = rowEl?.querySelector("[data-f='timeStart']");
+      const endEl   = rowEl?.querySelector("[data-f='timeEnd']");
+      if (startEl?.value && endEl?.value) {
+        const [sh, sm] = startEl.value.split(":").map(Number);
+        const [eh, em] = endEl.value.split(":").map(Number);
+        const mins = (eh * 60 + em) - (sh * 60 + sm);
+        if (mins > 0) {
+          row.hours = Math.round(mins / 60 * 2) / 2;
+          const hoursEl = rowEl?.querySelector("[data-f='hours']");
+          if (hoursEl) hoursEl.value = row.hours;
         }
       }
-      recalcOtCard(subId);
-    });
+    }
+    recalcOtCard(subId);
+  }
+  listEl.querySelectorAll("[data-ot-session-input]").forEach(el => {
+    el.addEventListener("change", onAdminSessionChange);
+    el.addEventListener("input",  onAdminSessionChange);
   });
 
   // Wire toggle + buttons
@@ -1936,6 +1938,9 @@ function renderOvertimeList() {
 
   listEl.querySelectorAll("[data-ot-approve]").forEach(btn => {
     btn.addEventListener("click", () => handleOtApprove(btn.dataset.otApprove));
+  });
+  listEl.querySelectorAll("[data-ot-save-sessions]").forEach(btn => {
+    btn.addEventListener("click", () => handleOtSaveSessions(btn.dataset.otSaveSessions));
   });
   listEl.querySelectorAll("[data-ot-reject]").forEach(btn => {
     btn.addEventListener("click", () => handleOtReject(btn.dataset.otReject));
@@ -1994,6 +1999,35 @@ function readOtFields(subId) {
     reviewer_subtitle:   $(`#ot-reviewer-sub-${subId}`)?.value?.trim()   || "",
     reviewer_position:   $(`#ot-reviewer-pos-${subId}`)?.value?.trim()   || "",
   };
+}
+
+async function handleOtSaveSessions(subId) {
+  const statusEl = $(`#ot-action-status-${subId}`);
+  statusEl.textContent = "Guardando…";
+  const sub      = otSubmissions.find(s => s.id === subId);
+  const sessions = otSessionsMap[subId] || sub?.sessions || [];
+  const wRate    = parseFloat(sub?.ot_rate_weekday_pct) || 0;
+  const hRate    = parseFloat(sub?.ot_rate_holiday_pct) || 0;
+  const salary   = parseFloat(sub?.base_salary) || 0;
+  const wHours   = sessions.filter(r => r.type === "weekday").reduce((a, r) => a + (r.hours || 0), 0);
+  const hHours   = sessions.filter(r => r.type === "holiday").reduce((a, r) => a + (r.hours || 0), 0);
+  const wAmt     = Math.round(wHours * wRate * salary * 100) / 100;
+  const hAmt     = Math.round(hHours * hRate * salary * 100) / 100;
+  const total    = Math.round((wAmt + hAmt) * 100) / 100;
+
+  const { error } = await supabase.from("overtime_submissions")
+    .update({ sessions, weekday_hours: wHours, holiday_hours: hHours,
+              weekday_amount: wAmt, holiday_amount: hAmt, total_amount: total })
+    .eq("id", subId);
+
+  if (error) { statusEl.textContent = "✗ " + error.message; statusEl.style.color = "var(--stamp)"; return; }
+  statusEl.textContent = "✓ Guardado";
+  statusEl.style.color = "var(--ok)";
+  if (sub) {
+    sub.sessions = sessions;
+    sub.weekday_hours = wHours; sub.holiday_hours = hHours;
+    sub.weekday_amount = wAmt; sub.holiday_amount = hAmt; sub.total_amount = total;
+  }
 }
 
 async function handleOtApprove(subId) {
