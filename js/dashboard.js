@@ -551,7 +551,7 @@ async function renderCalendarView(groupedForFilter) {
   const legend = `
     <div class="cal-legend">
       <span><span class="swatch" style="background:var(--ok)"></span>${t("dash.cal.legendRegular")}</span>
-      <span><span class="swatch" style="background:var(--stamp)"></span>${t("dash.cal.legendOvertime")}</span>
+      <span><span class="swatch" style="background:var(--overtime)"></span>${t("dash.cal.legendOvertime")}</span>
       <span><span class="swatch" style="background:#B23A3A"></span>${t("dash.cal.legendIncomplete")}</span>
       <span><span class="swatch" style="background:var(--ok-soft)"></span>${t("dash.cal.legendVacation")}</span>
       <span><span class="swatch" style="background:var(--stamp-soft)"></span>${t("dash.cal.legendHoliday")}</span>
@@ -645,7 +645,7 @@ async function renderCalendarView(groupedForFilter) {
       <div class="emp-group cal-emp-group${targetEmployees.length === 1 ? "" : " collapsed"}">
         <button type="button" class="emp-group-summary" data-emp-toggle>
           <span>${escapeHtml(emp.full_name)} <span class="emp-group-meta">${escapeHtml(emp.email)}</span></span>
-          <span class="emp-group-meta">${t("dash.cal.totalRegular")}: ${regularHoursLabel} · <strong style="color:var(--stamp)">${t("dash.cal.totalOvertime")}: ${overtimeHoursLabel}</strong>${totalLateMinutes > 0 ? ` · <span style="color:#B23A3A">${t("dash.cal.totalLate")}: ${lateLabel}</span>` : ""}</span>
+          <span class="emp-group-meta">${t("dash.cal.totalRegular")}: ${regularHoursLabel} · <strong style="color:var(--overtime)">${t("dash.cal.totalOvertime")}: ${overtimeHoursLabel}</strong>${totalLateMinutes > 0 ? ` · <span style="color:#B23A3A">${t("dash.cal.totalLate")}: ${lateLabel}</span>` : ""}</span>
         </button>
         <div class="emp-group-body">
           <div class="cal-month-title">${monthTitle}</div>
@@ -718,7 +718,7 @@ function renderReport() {
     $("#summary-row").innerHTML = `
       <div class="summary-card"><div class="label">${t("dash.report.summaryDaysRegistered")}</div><div class="value">${fmtMoney(grouped.length)}</div></div>
       <div class="summary-card"><div class="label">${t("dash.report.summaryEmployeesWithRecords")}</div><div class="value">${fmtMoney(employeesWithRecords)}</div></div>
-      <div class="summary-card stamp"><div class="label">${t("dash.report.summaryOvertimeDays")}</div><div class="value">${fmtMoney(overtimeCount)}</div></div>
+      <div class="summary-card ot"><div class="label">${t("dash.report.summaryOvertimeDays")}</div><div class="value">${fmtMoney(overtimeCount)}</div></div>
     `;
     list.style.display = "none";
     calendar.style.display = "block";
@@ -740,7 +740,7 @@ function renderReport() {
   $("#summary-row").innerHTML = `
     <div class="summary-card"><div class="label">${t("dash.report.summaryRecords")}</div><div class="value">${fmtMoney(records.length)}</div></div>
     <div class="summary-card"><div class="label">${t("dash.report.summaryEmployeesWithRecords")}</div><div class="value">${fmtMoney(employeeGroups.length)}</div></div>
-    <div class="summary-card stamp"><div class="label">${t("dash.report.summaryOvertimeRecords")}</div><div class="value">${fmtMoney(overtimeCount)}</div></div>
+    <div class="summary-card ot"><div class="label">${t("dash.report.summaryOvertimeRecords")}</div><div class="value">${fmtMoney(overtimeCount)}</div></div>
   `;
 
   if (!employeeGroups.length) {

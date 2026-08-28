@@ -7,6 +7,8 @@
   --paper-card: #FFFFFF;
   --stamp: #C1440E;
   --stamp-soft: #F3DCCF;
+  --overtime: #9A6B00;
+  --overtime-soft: #FEF3CC;
   --ok: #3A7D44;
   --ok-soft: #DCEBDD;
   --line: #E4DFD3;
@@ -228,6 +230,7 @@ a { color: var(--stamp); }
 .summary-card .label { font-size: 12px; text-transform: uppercase; letter-spacing: .05em; color: var(--text-muted); font-weight: 600; }
 .summary-card .value { font-family: var(--font-display); font-size: 26px; font-weight: 700; color: var(--ink); margin-top: 4px; }
 .summary-card.stamp .value { color: var(--stamp); }
+.summary-card.ot .value { color: var(--overtime); }
 
 /* ---------- Ticket / ponchadora ---------- */
 .ticket-list { display: flex; flex-direction: column; gap: 10px; }
@@ -270,8 +273,8 @@ a { color: var(--stamp); }
 .t-badge.ok { background: var(--ok-soft); color: var(--ok); }
 .t-badge.overtime {
   background: transparent;
-  color: var(--stamp);
-  border: 2px solid var(--stamp);
+  color: var(--overtime);
+  border: 2px solid var(--overtime);
   transform: rotate(-4deg);
 }
 
@@ -374,7 +377,7 @@ a { color: var(--stamp); }
   font-family: var(--font-display); color: #fff; line-height: 1.3; word-break: break-word;
 }
 .cal-bar.regular { background: var(--ok); }
-.cal-bar.overtime { background: var(--stamp); }
+.cal-bar.overtime { background: var(--overtime); }
 .cal-bar.incomplete { background: #B23A3A; }
 .cal-vacation-tag {
   margin-top: 4px; font-size: 9px; font-weight: 700; text-transform: uppercase;
@@ -383,7 +386,7 @@ a { color: var(--stamp); }
 .cal-holiday-tag { font-size: 9px; font-weight: 700; text-transform: uppercase; color: #8A2E09; margin-top: 2px; }
 .cal-day-ot-total {
   margin-top: 4px; font-size: 9px; font-weight: 700; text-transform: uppercase;
-  color: var(--stamp); background: var(--stamp-soft); border-radius: 4px; padding: 3px 5px; text-align: center;
+  color: var(--overtime); background: var(--overtime-soft); border-radius: 4px; padding: 3px 5px; text-align: center;
 }
 .cal-day-late-total {
   margin-top: 2px; font-size: 9px; font-weight: 700; text-transform: uppercase;
