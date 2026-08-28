@@ -20,6 +20,18 @@ let reviewerSubtitle   = '';
 let reviewerPosition   = '';
 
 const pad = (n) => String(n).padStart(2, '0');
+
+// Round to nearest 30 min: minutes < 15 → :00, minutes >= 15 → :30
+function roundTo30min(h, m) {
+  const rem = m % 30;
+  if (rem < 15) {
+    m = m - rem;
+  } else {
+    m = m - rem + 30;
+    if (m >= 60) { h = (h + 1) % 24; m = 0; }
+  }
+  return `${pad(h)}:${pad(m)}`;
+}
 const esc = (s = '') => String(s).replace(/[&<>"']/g, c =>
   ({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;' }[c]));
 const escAttr = (s = '') => String(s).replace(/"/g, '&quot;');
@@ -201,10 +213,20 @@ function buildFromRecords(records, tz) {
     .map(({ checkIn, checkOut }) => {
       const d1 = new Date(checkIn.recorded_at);
       const d2 = checkOut ? new Date(checkOut.recorded_at) : null;
-      const date      = dateTZ(d1, tz);
-      const timeStart = timeTZ(d1, tz);
-      const timeEnd   = d2 ? timeTZ(d2, tz) : '';
-      const hours     = d2 ? Math.round((d2 - d1) / (1000 * 60 * 60) * 2) / 2 : 0;
+      const date = dateTZ(d1, tz);
+      const rawStart = timeTZ(d1, tz);
+      const rawEnd   = d2 ? timeTZ(d2, tz) : '';
+      const [sh, sm] = rawStart.split(':').map(Number);
+      const timeStart = roundTo30min(sh, sm);
+      const timeEnd   = rawEnd ? (() => { const [eh, em] = rawEnd.split(':').map(Number); return roundTo30min(eh, em); })() : '';
+      // Recalculate hours from rounded times
+      let hours = 0;
+      if (timeEnd) {
+        const [rsh, rsm] = timeStart.split(':').map(Number);
+        const [reh, rem] = timeEnd.split(':').map(Number);
+        const mins = (reh * 60 + rem) - (rsh * 60 + rsm);
+        if (mins > 0) hours = Math.round(mins / 60 * 2) / 2;
+      }
       return {
         rowId: crypto.randomUUID(),
         date,
@@ -295,7 +317,17 @@ function onFieldChange(e) {
     s[field] = e.target.value;
   }
 
-  // Auto-compute hours from time range when either time changes
+  // Round to nearest 30 min on 'change' (not on every keystroke)
+  if ((field === 'timeStart' || field === 'timeEnd') && e.type === 'change') {
+    const [hh, mm] = s[field].split(':').map(Number);
+    if (!isNaN(hh) && !isNaN(mm)) {
+      const rounded = roundTo30min(hh, mm);
+      s[field] = rounded;
+      e.target.value = rounded;
+    }
+  }
+
+  // Auto-compute hours from rounded time range
   if (field === 'timeStart' || field === 'timeEnd') {
     const startEl = row.querySelector('[data-f="timeStart"]');
     const endEl   = row.querySelector('[data-f="timeEnd"]');
