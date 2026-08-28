@@ -91,13 +91,14 @@ function setupNav() {
     btn.addEventListener("click", () => {
       document.querySelectorAll(".sidebar-nav button[data-view]").forEach((b) => b.classList.remove("active"));
       btn.classList.add("active");
-      ["report", "employees", "vacations", "holidays", "company", "backup"].forEach((v) => {
+      ["report", "employees", "vacations", "holidays", "overtime", "company", "backup"].forEach((v) => {
         document.getElementById(`view-${v}`).style.display = v === btn.dataset.view ? "block" : "none";
       });
       if (btn.dataset.view === "employees") { renderEmployeesTable(); renderSalaryDeptTable(); }
       if (btn.dataset.view === "vacations") { loadVacationsSummary(); loadVacationsLog(); }
-      if (btn.dataset.view === "holidays") { loadHolidayCountries(); loadHolidays(); }
-      if (btn.dataset.view === "company") loadWorkSchedules();
+      if (btn.dataset.view === "holidays")  { loadHolidayCountries(); loadHolidays(); }
+      if (btn.dataset.view === "company")   loadWorkSchedules();
+      if (btn.dataset.view === "overtime")  loadOvertimeSubmissions();
     });
   });
   $("#logout-btn").addEventListener("click", async () => {
@@ -1669,6 +1670,241 @@ async function handleSaveOtRates() {
   company.ot_max_pct = maxPct;
   statusSpan.textContent = t("dash.company.otRatesSaved");
   statusSpan.style.color = "";
+}
+
+// ---------------------------------------------------------------------
+// Horas Extras — vista admin
+// ---------------------------------------------------------------------
+let otSubmissions = [];
+
+async function loadOvertimeSubmissions() {
+  const listEl = $("#ot-list");
+  listEl.innerHTML = `<p class="hint" style="text-align:center;padding:24px">${t("common.loading")}</p>`;
+
+  const { data, error } = await supabase
+    .from("overtime_submissions")
+    .select(`id, employee_id, year, month, sessions, weekday_hours, holiday_hours,
+             base_salary, ot_rate_weekday_pct, ot_rate_holiday_pct,
+             weekday_amount, holiday_amount, total_amount, status,
+             authorizer_name, reviewer_name, rejection_note, submitted_at, updated_at,
+             profiles(full_name, department)`)
+    .eq("company_id", company.id)
+    .order("submitted_at", { ascending: false, nullsFirst: false });
+
+  if (error) {
+    listEl.innerHTML = `<p style="color:var(--stamp);padding:16px">Error: ${escapeHtml(error.message)}</p>`;
+    return;
+  }
+  otSubmissions = data || [];
+
+  // Populate month filter
+  const months = [...new Set(otSubmissions.map(s => `${s.year}-${String(s.month).padStart(2,"0")}`))].sort().reverse();
+  const mSel = $("#ot-filter-month");
+  const curMVal = mSel.value;
+  mSel.innerHTML = `<option value="">${t("dash.ot.filterAllMonths")}</option>` +
+    months.map(m => {
+      const [y, mo] = m.split("-");
+      const label = new Intl.DateTimeFormat("es", { year:"numeric", month:"long" })
+        .format(new Date(parseInt(y), parseInt(mo) - 1, 1));
+      return `<option value="${m}" ${m === curMVal ? "selected" : ""}>${label.charAt(0).toUpperCase() + label.slice(1)}</option>`;
+    }).join("");
+
+  renderOvertimeList();
+}
+
+function renderOvertimeList() {
+  const listEl    = $("#ot-list");
+  const statusF   = $("#ot-filter-status")?.value || "";
+  const monthF    = $("#ot-filter-month")?.value  || "";
+  const cur = company.currency || "USD";
+
+  let filtered = otSubmissions;
+  if (statusF) filtered = filtered.filter(s => s.status === statusF);
+  if (monthF)  filtered = filtered.filter(s => `${s.year}-${String(s.month).padStart(2,"0")}` === monthF);
+
+  if (!filtered.length) {
+    listEl.innerHTML = `<p class="hint" style="text-align:center;padding:32px">${t("dash.ot.none")}</p>`;
+    return;
+  }
+
+  const statusBadge = (st) => {
+    const cfg = {
+      submitted: { cls: "overtime",  label: t("dash.ot.statusSubmitted") },
+      approved:  { cls: "ok",        label: t("dash.ot.statusApproved")  },
+      rejected:  { cls: "stamp",     label: t("dash.ot.statusRejected")  },
+      draft:     { cls: "default",   label: t("dash.ot.statusDraft")     },
+    }[st] || { cls: "default", label: st };
+    return `<span class="t-badge ${cfg.cls}" style="display:inline-block">${cfg.cls === "stamp" ? `<span style="color:var(--stamp)">${cfg.label}</span>` : cfg.label}</span>`;
+  };
+
+  listEl.innerHTML = filtered.map(s => {
+    const empName = s.profiles?.full_name || "—";
+    const dept    = s.profiles?.department || "—";
+    const monthLabel = new Intl.DateTimeFormat("es", { year:"numeric", month:"long" })
+      .format(new Date(s.year, s.month - 1, 1));
+
+    const sessionsHtml = (s.sessions || []).map((r, i) => `
+      <tr>
+        <td style="text-align:center;color:var(--text-muted)">${i + 1}</td>
+        <td>${r.date || ""}</td>
+        <td style="text-align:center">${r.timeStart || ""}${r.timeEnd ? " – " + r.timeEnd : ""}</td>
+        <td style="text-align:center;font-family:var(--font-display)">${r.type === "weekday" ? (r.hours || 0).toFixed(1) : ""}</td>
+        <td style="text-align:center;font-family:var(--font-display)">${r.type === "holiday" ? (r.hours || 0).toFixed(1) : ""}</td>
+        <td>${escapeHtml(r.description || "")}</td>
+      </tr>`).join("");
+
+    const isEditable = s.status !== "approved";
+    const wdPct  = ((parseFloat(s.ot_rate_weekday_pct) || 0) * 100).toFixed(2);
+    const holPct = ((parseFloat(s.ot_rate_holiday_pct) || 0) * 100).toFixed(2);
+
+    return `
+    <div class="ot-card" data-ot-id="${s.id}" style="background:var(--paper-card);border:1px solid var(--line);border-radius:8px;margin-bottom:14px;overflow:hidden">
+      <!-- Header row -->
+      <div style="display:flex;justify-content:space-between;align-items:center;padding:14px 18px;cursor:pointer;gap:12px" data-ot-toggle="${s.id}">
+        <div style="display:flex;flex-direction:column;gap:2px">
+          <span style="font-weight:700;font-size:15px;color:var(--ink)">${escapeHtml(empName)}</span>
+          <span style="font-size:12px;color:var(--text-muted)">${escapeHtml(dept)} · ${monthLabel.charAt(0).toUpperCase() + monthLabel.slice(1)}</span>
+        </div>
+        <div style="display:flex;align-items:center;gap:16px;flex-shrink:0">
+          <div style="text-align:right">
+            <div style="font-family:var(--font-display);font-size:18px;font-weight:700;color:var(--overtime)">${cur} ${fmtN(s.total_amount)}</div>
+            <div style="font-size:11px;color:var(--text-muted)">${(parseFloat(s.weekday_hours)||0).toFixed(1)}h hábil + ${(parseFloat(s.holiday_hours)||0).toFixed(1)}h libre</div>
+          </div>
+          ${statusBadge(s.status)}
+          <span style="color:var(--text-muted);font-size:18px;user-select:none" data-ot-caret="${s.id}">▸</span>
+        </div>
+      </div>
+
+      <!-- Expandable detail -->
+      <div id="ot-detail-${s.id}" style="display:none;border-top:1px solid var(--line);padding:18px 18px 20px">
+        <!-- Sessions table -->
+        <div style="overflow-x:auto;margin-bottom:14px">
+          <table class="simple-table" style="font-size:13px">
+            <thead><tr>
+              <th style="width:28px">#</th>
+              <th>Fecha</th><th style="text-align:center">Horario</th>
+              <th style="text-align:center">Día hábil</th>
+              <th style="text-align:center">Día libre</th>
+              <th>Descripción</th>
+            </tr></thead>
+            <tbody>${sessionsHtml || `<tr><td colspan="6" class="hint" style="text-align:center;padding:12px">Sin sesiones</td></tr>`}</tbody>
+            <tfoot><tr style="background:#F1ECDF;font-weight:700">
+              <td colspan="3" style="text-align:right;padding:6px 10px;font-size:12px">Total</td>
+              <td style="text-align:center;padding:6px 10px">${(parseFloat(s.weekday_hours)||0).toFixed(1)}</td>
+              <td style="text-align:center;padding:6px 10px">${(parseFloat(s.holiday_hours)||0).toFixed(1)}</td>
+              <td></td>
+            </tr></tfoot>
+          </table>
+        </div>
+
+        <!-- Calc summary -->
+        <div style="background:var(--paper);border:1px solid var(--line);border-radius:6px;padding:14px 16px;margin-bottom:16px;font-size:13px">
+          <div style="display:flex;justify-content:space-between;margin-bottom:4px">
+            <span style="color:var(--text-muted)">Días hábiles: ${(parseFloat(s.weekday_hours)||0).toFixed(1)}h × ${wdPct}% × ${cur} ${fmtN(s.base_salary)}</span>
+            <span style="font-family:var(--font-display);font-weight:700">${cur} ${fmtN(s.weekday_amount)}</span>
+          </div>
+          <div style="display:flex;justify-content:space-between;margin-bottom:10px">
+            <span style="color:var(--text-muted)">Días libres: ${(parseFloat(s.holiday_hours)||0).toFixed(1)}h × ${holPct}% × ${cur} ${fmtN(s.base_salary)}</span>
+            <span style="font-family:var(--font-display);font-weight:700">${cur} ${fmtN(s.holiday_amount)}</span>
+          </div>
+          <div style="display:flex;justify-content:space-between;border-top:2px solid var(--ink);padding-top:10px">
+            <span style="font-weight:700">Horas extras solicitadas</span>
+            <span style="font-family:var(--font-display);font-size:18px;font-weight:700;color:var(--overtime)">${cur} ${fmtN(s.total_amount)}</span>
+          </div>
+        </div>
+
+        <!-- Approval fields -->
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:14px">
+          <div class="field">
+            <label style="font-size:12px;font-weight:600;text-transform:uppercase;letter-spacing:.04em;color:var(--text-muted);display:block;margin-bottom:4px">${t("dash.ot.authorizerName")}</label>
+            <input type="text" id="ot-authorizer-${s.id}" value="${escapeHtml(s.authorizer_name || "")}"
+              placeholder="${t("dash.ot.authorizerPlaceholder")}" ${!isEditable ? "readonly" : ""}
+              style="width:100%;padding:7px 10px;border:1px solid var(--line);border-radius:4px;font-size:13px;background:${isEditable ? "var(--paper)" : "#F5F1E8"}" />
+          </div>
+          <div class="field">
+            <label style="font-size:12px;font-weight:600;text-transform:uppercase;letter-spacing:.04em;color:var(--text-muted);display:block;margin-bottom:4px">${t("dash.ot.reviewerName")}</label>
+            <input type="text" id="ot-reviewer-${s.id}" value="${escapeHtml(s.reviewer_name || "")}"
+              placeholder="${t("dash.ot.reviewerPlaceholder")}" ${!isEditable ? "readonly" : ""}
+              style="width:100%;padding:7px 10px;border:1px solid var(--line);border-radius:4px;font-size:13px;background:${isEditable ? "var(--paper)" : "#F5F1E8"}" />
+          </div>
+        </div>
+
+        ${s.status === "rejected" && s.rejection_note ? `<div style="padding:8px 12px;background:var(--stamp-soft);color:#8A2E09;border-radius:4px;font-size:12px;margin-bottom:12px">Motivo: ${escapeHtml(s.rejection_note)}</div>` : ""}
+
+        <!-- Action buttons -->
+        <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
+          ${isEditable ? `
+            <button class="btn btn-primary" data-ot-approve="${s.id}">${t("dash.ot.btnApprove")}</button>
+            <button class="btn btn-ghost" data-ot-reject="${s.id}" style="color:var(--stamp)">${t("dash.ot.btnReject")}</button>
+          ` : `<span class="t-badge ok" style="display:inline-block">${t("dash.ot.statusApproved")}</span>`}
+          <span id="ot-action-status-${s.id}" class="hint" style="margin-left:auto;font-size:12px"></span>
+        </div>
+      </div>
+    </div>`;
+  }).join("");
+
+  // Wire toggle + buttons
+  listEl.querySelectorAll("[data-ot-toggle]").forEach(hdr => {
+    hdr.addEventListener("click", () => {
+      const id = hdr.dataset.otToggle;
+      const detail = $(`#ot-detail-${id}`);
+      const caret  = $(`[data-ot-caret="${id}"]`);
+      const open = detail.style.display === "none";
+      detail.style.display = open ? "block" : "none";
+      if (caret) caret.textContent = open ? "▾" : "▸";
+    });
+  });
+
+  listEl.querySelectorAll("[data-ot-approve]").forEach(btn => {
+    btn.addEventListener("click", () => handleOtApprove(btn.dataset.otApprove));
+  });
+  listEl.querySelectorAll("[data-ot-reject]").forEach(btn => {
+    btn.addEventListener("click", () => handleOtReject(btn.dataset.otReject));
+  });
+
+  // Wire filter changes
+  $("#ot-filter-status")?.removeEventListener("change", renderOvertimeList);
+  $("#ot-filter-month")?.removeEventListener("change", renderOvertimeList);
+  $("#ot-filter-status")?.addEventListener("change", renderOvertimeList);
+  $("#ot-filter-month")?.addEventListener("change", renderOvertimeList);
+}
+
+async function handleOtApprove(subId) {
+  const statusEl = $(`#ot-action-status-${subId}`);
+  statusEl.textContent = t("common.loading");
+  const authName = $(`#ot-authorizer-${subId}`)?.value?.trim() || "";
+  const revName  = $(`#ot-reviewer-${subId}`)?.value?.trim()  || "";
+
+  const { error } = await supabase.from("overtime_submissions")
+    .update({ status: "approved", authorizer_name: authName, reviewer_name: revName, approved_at: new Date().toISOString() })
+    .eq("id", subId);
+
+  if (error) { statusEl.textContent = "✗ " + error.message; statusEl.style.color = "var(--stamp)"; return; }
+
+  const sub = otSubmissions.find(s => s.id === subId);
+  if (sub) { sub.status = "approved"; sub.authorizer_name = authName; sub.reviewer_name = revName; }
+  await loadOvertimeSubmissions();
+}
+
+async function handleOtReject(subId) {
+  const note = prompt(t("dash.ot.rejectPrompt"));
+  if (note === null) return;
+  const statusEl = $(`#ot-action-status-${subId}`);
+  statusEl.textContent = t("common.loading");
+  const authName = $(`#ot-authorizer-${subId}`)?.value?.trim() || "";
+  const revName  = $(`#ot-reviewer-${subId}`)?.value?.trim()  || "";
+
+  const { error } = await supabase.from("overtime_submissions")
+    .update({ status: "rejected", authorizer_name: authName, reviewer_name: revName, rejection_note: note })
+    .eq("id", subId);
+
+  if (error) { statusEl.textContent = "✗ " + error.message; statusEl.style.color = "var(--stamp)"; return; }
+
+  await loadOvertimeSubmissions();
+}
+
+function fmtN(n) {
+  return Number(n || 0).toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 }
 
 function escapeHtml(str = "") {

@@ -12,6 +12,8 @@ let currentYear = 0;
 let currentMonth = 0;
 let submissionId = null;
 let submissionStatus = 'draft';
+let authorizerName = '';
+let reviewerName   = '';
 
 const pad = (n) => String(n).padStart(2, '0');
 const esc = (s = '') => String(s).replace(/[&<>"']/g, c =>
@@ -96,6 +98,7 @@ function setupMonthSelect() {
 async function loadMonth(year, month) {
   currentYear = year; currentMonth = month;
   submissionId = null; submissionStatus = 'draft';
+  authorizerName = ''; reviewerName = '';
   sessions = [];
 
   const tz = company.timezone;
@@ -131,6 +134,8 @@ async function loadMonth(year, month) {
   if (subRes.data?.sessions?.length) {
     submissionId     = subRes.data.id;
     submissionStatus = subRes.data.status;
+    authorizerName   = subRes.data.authorizer_name || '';
+    reviewerName     = subRes.data.reviewer_name   || '';
     sessions = subRes.data.sessions;
   } else {
     sessions = buildFromRecords(recRes.data || [], tz);
@@ -466,11 +471,13 @@ function doPrint() {
       <div class="print-sigs">
         <div class="print-sig-cell">
           <div class="print-sig-line">
+            ${authorizerName ? `<div><strong>${esc(authorizerName)}</strong></div>` : ''}
             <div>Quien Autoriza</div>
           </div>
         </div>
         <div class="print-sig-cell">
           <div class="print-sig-line">
+            ${reviewerName ? `<div><strong>${esc(reviewerName)}</strong></div>` : ''}
             <div>Visto Bueno / Aprobado</div>
           </div>
         </div>

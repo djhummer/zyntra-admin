@@ -18,6 +18,7 @@
       <button data-view="employees" data-i18n="dash.navEmployees">Empleados</button>
       <button data-view="vacations" data-i18n="dash.navVacations">Vacaciones</button>
       <button data-view="holidays" data-i18n="dash.navHolidays">Festivos</button>
+      <button data-view="overtime" data-i18n="dash.navOvertime">Horas extras</button>
       <button data-view="company" data-i18n="dash.navCompany">Empresa</button>
       <button data-view="backup" data-i18n="dash.navBackup">Respaldo</button>
       <button id="logout-btn" data-i18n="common.logout">Cerrar sesión</button>
@@ -379,6 +380,31 @@
         </div>
       </div>
 
+    </section>
+
+    <!-- ============ VISTA: HORAS EXTRAS ============ -->
+    <section id="view-overtime" style="display:none">
+      <div class="main-header">
+        <h1 class="main-title" data-i18n="dash.ot.title">Horas extras</h1>
+        <div style="display:flex; gap:8px; align-items:center">
+          <select id="ot-filter-status" style="padding:5px 10px; border:1px solid var(--line); border-radius:4px; font-size:13px; background:var(--paper)">
+            <option value="" data-i18n="dash.ot.filterAll">Todos</option>
+            <option value="submitted" data-i18n="dash.ot.filterSubmitted">Enviados</option>
+            <option value="approved"  data-i18n="dash.ot.filterApproved">Aprobados</option>
+            <option value="rejected"  data-i18n="dash.ot.filterRejected">Rechazados</option>
+            <option value="draft"     data-i18n="dash.ot.filterDraft">Borradores</option>
+          </select>
+          <select id="ot-filter-month" style="padding:5px 10px; border:1px solid var(--line); border-radius:4px; font-size:13px; background:var(--paper)">
+            <option value="" data-i18n="dash.ot.filterAllMonths">Todos los meses</option>
+          </select>
+        </div>
+      </div>
+      <p class="hint" style="margin-bottom:16px" data-i18n="dash.ot.hint">
+        Formularios de horas extras enviados por los empleados. Añade los nombres de quien autoriza y aprueba antes de imprimir.
+      </p>
+      <div id="ot-list">
+        <p class="hint" style="text-align:center; padding:24px" data-i18n="common.loading">Cargando…</p>
+      </div>
     </section>
 
     <!-- ============ VISTA: RESPALDO ============ -->
