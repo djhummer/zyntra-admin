@@ -26,7 +26,7 @@ async function init() {
   if (session) { await boot(); } else { show('login'); }
   supabase.auth.onAuthStateChange(async (ev) => {
     if (ev === 'SIGNED_IN')  await boot();
-    if (ev === 'SIGNED_OUT') show('login');
+    if (ev === 'SIGNED_OUT') { showLoginAlert(''); show('login'); }
   });
 }
 
@@ -36,14 +36,21 @@ async function boot() {
 
   const { data: prof, error } = await supabase
     .from('profiles')
-    .select(`id, full_name, department, base_salary, company_id,
+    .select(`id, role, full_name, department, base_salary, company_id,
              companies(id, name, timezone, ot_rate_weekday_pct, ot_rate_holiday_pct, ot_max_pct)`)
     .eq('id', user.id)
     .single();
 
   if (error || !prof?.companies) {
-    alert('No se pudo cargar tu perfil. Contacta al administrador.');
     await supabase.auth.signOut();
+    showLoginAlert('No se pudo cargar tu perfil. Contacta al administrador.');
+    return;
+  }
+
+  // Only employees can use this portal
+  if (prof.role !== 'employee') {
+    await supabase.auth.signOut();
+    showLoginAlert('Este portal es exclusivo para empleados. Inicia sesión con tu cuenta de empleado.');
     return;
   }
 
@@ -184,8 +191,10 @@ function classify(dateStr) {
 function renderTable() {
   const tbody = $('#sessions-tbody');
   if (!sessions.length) {
-    tbody.innerHTML = `<tr><td colspan="7" style="text-align:center;color:var(--text-muted);padding:20px">
-      No hay sesiones de horas extras este mes. Usa "+ Agregar fila" para añadir manualmente.
+    tbody.innerHTML = `<tr><td colspan="7" style="text-align:center;color:var(--text-muted);padding:20px;font-size:13px">
+      No se encontraron sesiones de horas extras en este mes desde la app.<br>
+      <span style="font-size:12px">Si las marcaste como horas extras en la app, verifica que el mes seleccionado sea correcto.<br>
+      También puedes añadir filas manualmente con el botón "+ Agregar fila".</span>
     </td></tr>`;
     return;
   }
@@ -483,6 +492,21 @@ function show(screen) {
   $('#screen-portal').style.display = screen === 'portal' ? '' : 'none';
 }
 
+function showLoginAlert(msg) {
+  const el = $('#login-alert');
+  if (!el) return;
+  if (msg) {
+    el.textContent = msg;
+    el.className = 'alert error';
+  } else {
+    el.textContent = '';
+    el.className = 'alert';
+  }
+  // Re-enable login button if it was disabled
+  const btn = $('#login-btn');
+  if (btn) btn.disabled = false;
+}
+
 function monthBoundsUTC(year, month, timezone) {
   // Sample mid-month noon UTC to determine timezone offset
   const sample = new Date(Date.UTC(year, month - 1, 15, 12, 0, 0));
@@ -515,8 +539,7 @@ function printDate(dateStr) {
 document.addEventListener('DOMContentLoaded', () => {
   $('#form-login').addEventListener('submit', async (e) => {
     e.preventDefault();
-    const alertEl = $('#login-alert');
-    alertEl.className = 'alert';
+    showLoginAlert('');
     const btn = $('#login-btn');
     btn.disabled = true;
     const { error } = await supabase.auth.signInWithPassword({
@@ -524,10 +547,9 @@ document.addEventListener('DOMContentLoaded', () => {
       password: $('#login-password').value
     });
     if (error) {
-      alertEl.textContent = error.message;
-      alertEl.className = 'alert error';
-      btn.disabled = false;
+      showLoginAlert(error.message);
     }
+    // If success, onAuthStateChange fires SIGNED_IN → boot() runs
   });
 
   document.addEventListener('click', async (e) => {
