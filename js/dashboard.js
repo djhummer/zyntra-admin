@@ -1815,51 +1815,31 @@ function renderOvertimeList() {
           </div>
         </div>
 
-        <!-- Approval fields -->
-        <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;margin-bottom:14px">
-          <!-- Quien Autoriza (Yang Memberi Perintah) -->
+        <!-- Signatories (read-only — filled by employee in their portal) -->
+        <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;margin-bottom:14px;padding:12px 14px;background:#F5F1E8;border-radius:6px;border:1px solid var(--line)">
+          <!-- Quien Autoriza -->
           <div>
-            <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.04em;color:var(--text-muted);margin-bottom:6px;padding-bottom:4px;border-bottom:1px solid var(--line)">${t("dash.ot.authorizerName")}</div>
-            <div class="field" style="margin-bottom:6px">
-              <label style="font-size:11px;color:var(--text-muted)">Nombre</label>
-              <input type="text" id="ot-authorizer-${s.id}" value="${escapeHtml(s.authorizer_name || "")}"
-                placeholder="${t("dash.ot.authorizerPlaceholder")}" ${!isEditable ? "readonly" : ""}
-                style="width:100%;padding:6px 8px;border:1px solid var(--line);border-radius:4px;font-size:13px;background:${isEditable ? "var(--paper)" : "#F5F1E8"}" />
-            </div>
-            <div class="field">
-              <label style="font-size:11px;color:var(--text-muted)">${t("dash.ot.position")}</label>
-              <input type="text" id="ot-authorizer-pos-${s.id}" value="${escapeHtml(s.authorizer_position || "")}"
-                placeholder="${t("dash.ot.positionPlaceholder")}" ${!isEditable ? "readonly" : ""}
-                style="width:100%;padding:6px 8px;border:1px solid var(--line);border-radius:4px;font-size:13px;background:${isEditable ? "var(--paper)" : "#F5F1E8"}" />
-            </div>
+            <div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.04em;color:var(--text-muted);margin-bottom:6px">${t("dash.ot.authorizerName")}</div>
+            <input type="hidden" id="ot-authorizer-${s.id}" value="${escapeHtml(s.authorizer_name || "")}" />
+            <input type="hidden" id="ot-authorizer-pos-${s.id}" value="${escapeHtml(s.authorizer_position || "")}" />
+            <div style="font-size:13px;font-weight:700;color:var(--ink)">${escapeHtml(s.authorizer_name || "—")}</div>
+            <div style="font-size:11px;color:var(--text-muted)">${escapeHtml(s.authorizer_position || "")}</div>
           </div>
           <!-- Visto Bueno / Mengetahui -->
           <div>
-            <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.04em;color:var(--text-muted);margin-bottom:6px;padding-bottom:4px;border-bottom:1px solid var(--line)">${t("dash.ot.reviewerName")}</div>
-            <div class="field" style="margin-bottom:6px">
-              <label style="font-size:11px;color:var(--text-muted)">Nombre</label>
-              <input type="text" id="ot-reviewer-${s.id}" value="${escapeHtml(s.reviewer_name || "")}"
-                placeholder="${t("dash.ot.reviewerPlaceholder")}" ${!isEditable ? "readonly" : ""}
-                style="width:100%;padding:6px 8px;border:1px solid var(--line);border-radius:4px;font-size:13px;background:${isEditable ? "var(--paper)" : "#F5F1E8"}" />
-            </div>
-            <div class="field" style="margin-bottom:6px">
-              <label style="font-size:11px;color:var(--text-muted)">${t("dash.ot.reviewerSubtitle")}</label>
-              <input type="text" id="ot-reviewer-sub-${s.id}" value="${escapeHtml(s.reviewer_subtitle || "")}"
-                placeholder="${t("dash.ot.reviewerSubtitlePlaceholder")}" ${!isEditable ? "readonly" : ""}
-                style="width:100%;padding:6px 8px;border:1px solid var(--line);border-radius:4px;font-size:13px;background:${isEditable ? "var(--paper)" : "#F5F1E8"}" />
-            </div>
-            <div class="field">
-              <label style="font-size:11px;color:var(--text-muted)">${t("dash.ot.position")}</label>
-              <input type="text" id="ot-reviewer-pos-${s.id}" value="${escapeHtml(s.reviewer_position || "")}"
-                placeholder="${t("dash.ot.positionPlaceholder")}" ${!isEditable ? "readonly" : ""}
-                style="width:100%;padding:6px 8px;border:1px solid var(--line);border-radius:4px;font-size:13px;background:${isEditable ? "var(--paper)" : "#F5F1E8"}" />
-            </div>
+            <div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.04em;color:var(--text-muted);margin-bottom:6px">${t("dash.ot.reviewerName")}</div>
+            <input type="hidden" id="ot-reviewer-${s.id}" value="${escapeHtml(s.reviewer_name || "")}" />
+            <input type="hidden" id="ot-reviewer-sub-${s.id}" value="${escapeHtml(s.reviewer_subtitle || "")}" />
+            <input type="hidden" id="ot-reviewer-pos-${s.id}" value="${escapeHtml(s.reviewer_position || "")}" />
+            <div style="font-size:13px;font-weight:700;color:var(--ink)">${escapeHtml(s.reviewer_name || "—")}</div>
+            ${s.reviewer_subtitle ? `<div style="font-size:11px;color:var(--text-muted);font-style:italic">${escapeHtml(s.reviewer_subtitle)}</div>` : ""}
+            <div style="font-size:11px;color:var(--text-muted)">${escapeHtml(s.reviewer_position || "")}</div>
           </div>
-          <!-- Empleado (read-only info) -->
+          <!-- Empleado -->
           <div>
-            <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.04em;color:var(--text-muted);margin-bottom:6px;padding-bottom:4px;border-bottom:1px solid var(--line)">${t("dash.ot.employee")}</div>
-            <div style="font-size:13px;font-weight:700;color:var(--ink);margin-bottom:4px">${escapeHtml(empName)}</div>
-            <div style="font-size:12px;color:var(--text-muted)">${escapeHtml(dept)}</div>
+            <div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.04em;color:var(--text-muted);margin-bottom:6px">${t("dash.ot.employee")}</div>
+            <div style="font-size:13px;font-weight:700;color:var(--ink)">${escapeHtml(empName)}</div>
+            <div style="font-size:11px;color:var(--text-muted)">${escapeHtml(dept)}</div>
           </div>
         </div>
 

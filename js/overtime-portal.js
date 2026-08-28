@@ -156,6 +156,28 @@ async function loadMonth(year, month) {
   renderTable();
   renderCalc();
   renderSubmitBtn();
+  renderSigFields();
+}
+
+// ─── Populate signature fields from state ────────────
+function renderSigFields() {
+  const set = (id, val) => { const el = $(id); if (el) el.value = val; };
+  set('#sig-auth-name', authorizerName);
+  set('#sig-auth-pos',  authorizerPosition);
+  set('#sig-rev-name',  reviewerName);
+  set('#sig-rev-sub',   reviewerSubtitle);
+  set('#sig-rev-pos',   reviewerPosition);
+}
+
+function readSigFields() {
+  const get = (id) => $(id)?.value?.trim() || '';
+  return {
+    authorizer_name:     get('#sig-auth-name'),
+    authorizer_position: get('#sig-auth-pos'),
+    reviewer_name:       get('#sig-rev-name'),
+    reviewer_subtitle:   get('#sig-rev-sub'),
+    reviewer_position:   get('#sig-rev-pos'),
+  };
 }
 
 // ─── Build sessions from attendance records ────────────
@@ -371,6 +393,7 @@ async function save(status) {
     weekday_amount: wAmount, holiday_amount: hAmount,
     total_amount: total,
     status,
+    ...readSigFields(),
     updated_at: new Date().toISOString(),
     ...(status === 'submitted' ? { submitted_at: new Date().toISOString() } : {})
   };
@@ -405,6 +428,8 @@ function renderSubmitBtn() {
 // ─── Print ────────────────────────────────────────────
 function doPrint() {
   const { salary, wRate, hRate, maxPct, wHours, hHours, wAmount, hAmount, total, maxAllow } = getTotals();
+  const { authorizer_name: authName, authorizer_position: authPos,
+          reviewer_name: revName, reviewer_subtitle: revSub, reviewer_position: revPos } = readSigFields();
   const cur = company.currency || 'USD';
   const monthLabel = new Intl.DateTimeFormat('es', { year: 'numeric', month: 'long' })
     .format(new Date(currentYear, currentMonth - 1, 1)).toUpperCase();
@@ -484,8 +509,8 @@ function doPrint() {
         <div style="text-align:center">
           <div style="font-weight:bold">${t('portal.printSigAuthTitle')}</div>
           <div style="margin-top:48pt;border-top:1pt solid #333;padding-top:4pt">
-            <div><strong>${esc(authorizerName)}</strong></div>
-            ${authorizerPosition ? `<div style="font-size:9pt">${esc(authorizerPosition)}</div>` : ''}
+            <div><strong>${esc(authName)}</strong></div>
+            ${authPos ? `<div style="font-size:9pt">${esc(authPos)}</div>` : ''}
           </div>
         </div>
         <div style="text-align:center">
@@ -498,10 +523,10 @@ function doPrint() {
       <!-- Bottom center: Reviewer/Approver -->
       <div style="text-align:center;margin-top:30pt;font-size:10pt;font-family:'Times New Roman',serif;max-width:200pt;margin-left:auto;margin-right:auto">
         <div style="font-weight:bold">${t('portal.printSigRevTitle')}</div>
-        ${reviewerSubtitle ? `<div style="font-size:9pt;color:#555">${esc(reviewerSubtitle)}</div>` : ''}
+        ${revSub ? `<div style="font-size:9pt;color:#555">${esc(revSub)}</div>` : ''}
         <div style="margin-top:48pt;border-top:1pt solid #333;padding-top:4pt">
-          <div><strong>${esc(reviewerName)}</strong></div>
-          ${reviewerPosition ? `<div style="font-size:9pt">${esc(reviewerPosition)}</div>` : ''}
+          <div><strong>${esc(revName)}</strong></div>
+          ${revPos ? `<div style="font-size:9pt">${esc(revPos)}</div>` : ''}
         </div>
       </div>
     </div>`;

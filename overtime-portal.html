@@ -141,6 +141,41 @@
     <!-- Calculation -->
     <div class="calc-card" id="calc-box"></div>
 
+    <!-- Signatures -->
+    <div class="no-print" style="margin-top:20px;padding:18px 20px;background:var(--paper-card);border:1px solid var(--line);border-radius:6px">
+      <div style="font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:.05em;color:var(--text-muted);margin-bottom:14px" data-i18n="portal.sigSectionTitle">Firmas del formulario</div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:20px">
+        <!-- Yang Memberi Perintah -->
+        <div>
+          <div style="font-size:11px;font-weight:700;color:var(--overtime);margin-bottom:8px;padding-bottom:4px;border-bottom:1px solid var(--line)" data-i18n="portal.sigAuthTitle">Yang Memberi Perintah</div>
+          <div class="field" style="margin-bottom:6px">
+            <label style="font-size:11px;color:var(--text-muted)" data-i18n="portal.sigName">Nombre</label>
+            <input id="sig-auth-name" class="ot-input" type="text" data-i18n-placeholder="portal.sigNamePh" />
+          </div>
+          <div class="field">
+            <label style="font-size:11px;color:var(--text-muted)" data-i18n="portal.sigPosition">Cargo / Posición</label>
+            <input id="sig-auth-pos" class="ot-input" type="text" data-i18n-placeholder="portal.sigPositionPh" />
+          </div>
+        </div>
+        <!-- Mengetahui/Menyetujui -->
+        <div>
+          <div style="font-size:11px;font-weight:700;color:var(--overtime);margin-bottom:8px;padding-bottom:4px;border-bottom:1px solid var(--line)" data-i18n="portal.sigRevTitle">Mengetahui/Menyetujui</div>
+          <div class="field" style="margin-bottom:6px">
+            <label style="font-size:11px;color:var(--text-muted)" data-i18n="portal.sigName">Nombre</label>
+            <input id="sig-rev-name" class="ot-input" type="text" data-i18n-placeholder="portal.sigNamePh" />
+          </div>
+          <div class="field" style="margin-bottom:6px">
+            <label style="font-size:11px;color:var(--text-muted)" data-i18n="portal.sigSubtitle">Subtítulo</label>
+            <input id="sig-rev-sub" class="ot-input" type="text" data-i18n-placeholder="portal.sigSubtitlePh" />
+          </div>
+          <div class="field">
+            <label style="font-size:11px;color:var(--text-muted)" data-i18n="portal.sigPosition">Cargo / Posición</label>
+            <input id="sig-rev-pos" class="ot-input" type="text" data-i18n-placeholder="portal.sigPositionPh" />
+          </div>
+        </div>
+      </div>
+    </div>
+
     <!-- Status + Actions -->
     <div class="no-print" style="margin-top:20px;display:flex;gap:10px;align-items:center;flex-wrap:wrap">
       <button id="btn-save"   class="btn btn-primary"  data-i18n="portal.btnSave">Guardar borrador</button>

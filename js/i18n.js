@@ -520,6 +520,15 @@ const dict = {
   "portal.printCalcHoliday":   { es: "Días libres:",              en: "Days off:",                id: "Hari libur:" },
   "portal.printOTRequested":   { es: "Horas Extras Solicitadas",  en: "Overtime Requested",       id: "Lembur yang Diminta" },
   "portal.printOTPay":         { es: "Horas Extras a Pagar",      en: "Overtime to Pay",          id: "Lembur yang Dibayar" },
+  "portal.sigSectionTitle":    { es: "Firmas del formulario",      en: "Form Signatures",          id: "Tanda Tangan Formulir" },
+  "portal.sigAuthTitle":       { es: "Yang Memberi Perintah",     en: "Authorizer",               id: "Yang Memberi Perintah" },
+  "portal.sigRevTitle":        { es: "Mengetahui/Menyetujui",     en: "Approved By",              id: "Mengetahui/Menyetujui" },
+  "portal.sigName":            { es: "Nombre",                    en: "Name",                     id: "Nama" },
+  "portal.sigPosition":        { es: "Cargo / Posición",          en: "Position / Title",         id: "Jabatan" },
+  "portal.sigSubtitle":        { es: "Subtítulo",                 en: "Subtitle",                 id: "Keterangan Jabatan" },
+  "portal.sigNamePh":          { es: "Nombre completo",           en: "Full name",                id: "Nama lengkap" },
+  "portal.sigPositionPh":      { es: "Ej: Jefe de Área",          en: "e.g. Department Head",     id: "cth: Kepala Bagian" },
+  "portal.sigSubtitlePh":      { es: "Ej: Kepala Cabang",         en: "e.g. Branch Manager",      id: "cth: Kepala Cabang" },
   "portal.printSigAuthTitle":  { es: "Yang Memberi Perintah",     en: "Authorizer",               id: "Yang Memberi Perintah" },
   "portal.printSigEmpTitle":   { es: "Yang Melaksanakan lembur",  en: "Employee (Overtime)",      id: "Yang Melaksanakan lembur" },
   "portal.printSigRevTitle":   { es: "Mengetahui/Menyetujui",     en: "Approved By",              id: "Mengetahui/Menyetujui" },
@@ -597,10 +606,10 @@ export function renderLangSwitcher(containerId) {
   const el = document.getElementById(containerId);
   if (!el) return;
   const current = getLang();
-  el.innerHTML = `<select id="lang-switcher" class="lang-switcher" aria-label="Idioma / Language / Bahasa">
+  el.innerHTML = `<select class="lang-switcher" aria-label="Idioma / Language / Bahasa">
     ${SUPPORTED.map((l) => `<option value="${l}" ${l === current ? "selected" : ""}>${LANG_NAMES[l]}</option>`).join("")}
   </select>`;
-  document.getElementById("lang-switcher").addEventListener("change", (e) => setLang(e.target.value));
+  el.querySelector(".lang-switcher").addEventListener("change", (e) => setLang(e.target.value));
 }
 
 export function initI18n(switcherContainerId) {
