@@ -73,19 +73,20 @@
 <div id="screen-login" class="auth-shell">
   <div class="auth-card" style="position:relative">
     <div class="auth-brand">⏱ ZYNTRA</div>
-    <h1 class="auth-title" style="font-size:18px">Portal de Horas Extras</h1>
-    <p class="auth-subtitle">Ingresa con tu correo y contraseña para ver y reportar tus horas extras del mes.</p>
+    <h1 class="auth-title" style="font-size:18px" data-i18n="portal.title">Portal de Horas Extras</h1>
+    <p class="auth-subtitle" data-i18n="portal.subtitle">Ingresa con tu correo y contraseña para ver y reportar tus horas extras del mes.</p>
     <div id="login-alert" class="alert"></div>
+    <div id="login-lang-container" style="position:absolute;top:12px;right:12px"></div>
     <form id="form-login" class="form-panel active">
       <div class="field">
-        <label for="login-email">Correo</label>
+        <label for="login-email" data-i18n="portal.email">Correo</label>
         <input id="login-email" type="email" required autocomplete="email" />
       </div>
       <div class="field">
-        <label for="login-password">Contraseña</label>
+        <label for="login-password" data-i18n="portal.password">Contraseña</label>
         <input id="login-password" type="password" required autocomplete="current-password" />
       </div>
-      <button class="btn btn-primary" type="submit" style="width:100%" id="login-btn">Ingresar</button>
+      <button class="btn btn-primary" type="submit" style="width:100%" id="login-btn" data-i18n="portal.loginBtn">Ingresar</button>
     </form>
   </div>
 </div>
@@ -97,7 +98,8 @@
     <div style="color:var(--text-on-ink);font-family:var(--font-display);font-size:12px;font-weight:700;letter-spacing:.1em">⏱ ZYNTRA</div>
     <div style="display:flex;gap:12px;align-items:center">
       <select id="month-select" style="padding:5px 10px;border:1px solid rgba(255,255,255,.25);border-radius:4px;background:var(--ink-soft);color:var(--text-on-ink);font-size:13px"></select>
-      <button id="btn-logout" class="btn btn-ghost" style="color:var(--text-on-ink);border-color:rgba(255,255,255,.3);font-size:13px">Salir</button>
+      <div id="portal-lang-container"></div>
+      <button id="btn-logout" class="btn btn-ghost" style="color:var(--text-on-ink);border-color:rgba(255,255,255,.3);font-size:13px" data-i18n="portal.logout">Salir</button>
     </div>
   </div>
 
@@ -106,17 +108,17 @@
     <div style="margin-bottom:20px">
       <div id="portal-company" style="font-size:22px;font-weight:700;color:var(--ink);margin-bottom:14px"></div>
       <div class="emp-info-grid">
-        <div class="emp-info-cell"><div class="lbl">Nombre</div><div class="val" id="info-name"></div></div>
-        <div class="emp-info-cell"><div class="lbl">Departamento</div><div class="val" id="info-dept"></div></div>
-        <div class="emp-info-cell"><div class="lbl">Sueldo Básico</div><div class="val" id="info-salary"></div></div>
-        <div class="emp-info-cell"><div class="lbl">Máximo Permitido</div><div class="val" id="info-max" style="color:var(--overtime)"></div></div>
+        <div class="emp-info-cell"><div class="lbl" data-i18n="portal.infoName">Nombre</div><div class="val" id="info-name"></div></div>
+        <div class="emp-info-cell"><div class="lbl" data-i18n="portal.infoDept">Departamento</div><div class="val" id="info-dept"></div></div>
+        <div class="emp-info-cell"><div class="lbl" data-i18n="portal.infoSalary">Sueldo Básico</div><div class="val" id="info-salary"></div></div>
+        <div class="emp-info-cell"><div class="lbl" data-i18n="portal.infoMaxOT">Máximo Permitido</div><div class="val" id="info-max" style="color:var(--overtime)"></div></div>
       </div>
     </div>
 
     <!-- Sessions -->
     <div class="no-print" style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px">
-      <h2 style="font-size:15px;font-weight:700;color:var(--ink);margin:0">Sesiones de Horas Extras</h2>
-      <button id="btn-add-row" class="btn btn-ghost" style="font-size:13px">+ Agregar fila</button>
+      <h2 style="font-size:15px;font-weight:700;color:var(--ink);margin:0" data-i18n="portal.sessionsTitle">Sesiones de Horas Extras</h2>
+      <button id="btn-add-row" class="btn btn-ghost" style="font-size:13px" data-i18n="portal.addRow">+ Agregar fila</button>
     </div>
 
     <div style="overflow-x:auto">
@@ -124,11 +126,11 @@
         <thead>
           <tr>
             <th style="width:28px">#</th>
-            <th style="width:120px">Fecha</th>
-            <th style="width:172px">Horario</th>
-            <th style="width:74px">Horas</th>
-            <th style="width:110px">Tipo</th>
-            <th>Descripción / Keterangan</th>
+            <th style="width:120px" data-i18n="portal.thDate">Fecha</th>
+            <th style="width:172px" data-i18n="portal.thSchedule">Horario</th>
+            <th style="width:74px" data-i18n="portal.thHours">Horas</th>
+            <th style="width:110px" data-i18n="portal.thType">Tipo</th>
+            <th data-i18n="portal.thDesc">Descripción / Keterangan</th>
             <th class="no-print" style="width:32px"></th>
           </tr>
         </thead>
@@ -141,9 +143,9 @@
 
     <!-- Status + Actions -->
     <div class="no-print" style="margin-top:20px;display:flex;gap:10px;align-items:center;flex-wrap:wrap">
-      <button id="btn-save"   class="btn btn-primary">Guardar borrador</button>
-      <button id="btn-submit" class="btn btn-stamp">Enviar formulario</button>
-      <button id="btn-print"  class="btn btn-ghost">🖨 Imprimir</button>
+      <button id="btn-save"   class="btn btn-primary"  data-i18n="portal.btnSave">Guardar borrador</button>
+      <button id="btn-submit" class="btn btn-stamp"    data-i18n="portal.btnSubmit">Enviar formulario</button>
+      <button id="btn-print"  class="btn btn-ghost"    data-i18n="portal.btnPrint">🖨 Imprimir</button>
       <span id="portal-status" class="hint" style="margin-left:auto"></span>
     </div>
   </div>

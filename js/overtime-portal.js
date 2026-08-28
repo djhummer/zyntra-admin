@@ -1,4 +1,5 @@
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+import { t, initI18n, renderLangSwitcher, applyStaticTranslations } from "./i18n.js";
 
 const supabase = createClient(window.APP_CONFIG.SUPABASE_URL, window.APP_CONFIG.SUPABASE_ANON_KEY);
 const $ = (sel, root = document) => root.querySelector(sel);
@@ -24,6 +25,9 @@ const pctStr = (r) => (Number(r) * 100).toFixed(2) + '%';
 
 // ─── Auth ─────────────────────────────────────────────
 async function init() {
+  applyStaticTranslations();
+  renderLangSwitcher('login-lang-container');
+
   const { data: { session } } = await supabase.auth.getSession();
   if (session) { await boot(); } else { show('login'); }
   supabase.auth.onAuthStateChange(async (ev) => {
@@ -45,14 +49,14 @@ async function boot() {
 
   if (error || !prof?.companies) {
     await supabase.auth.signOut();
-    showLoginAlert('No se pudo cargar tu perfil. Contacta al administrador.');
+    showLoginAlert(t('portal.errProfile'));
     return;
   }
 
   // Only employees can use this portal
   if (prof.role !== 'employee') {
     await supabase.auth.signOut();
-    showLoginAlert('Este portal es exclusivo para empleados. Inicia sesión con tu cuenta de empleado.');
+    showLoginAlert(t('portal.errEmpOnly'));
     return;
   }
 
@@ -61,6 +65,7 @@ async function boot() {
 
   setupMonthSelect();
   renderEmpInfo();
+  renderLangSwitcher('portal-lang-container');
 
   const tz = company.timezone;
   const now = new Date();
@@ -197,9 +202,8 @@ function renderTable() {
   const tbody = $('#sessions-tbody');
   if (!sessions.length) {
     tbody.innerHTML = `<tr><td colspan="7" style="text-align:center;color:var(--text-muted);padding:20px;font-size:13px">
-      No se encontraron sesiones de horas extras en este mes desde la app.<br>
-      <span style="font-size:12px">Si las marcaste como horas extras en la app, verifica que el mes seleccionado sea correcto.<br>
-      También puedes añadir filas manualmente con el botón "+ Agregar fila".</span>
+      ${t('portal.noSessions')}<br>
+      <span style="font-size:12px">${t('portal.noSessionsHint')}</span>
     </td></tr>`;
     return;
   }
@@ -221,13 +225,13 @@ function renderTable() {
       </td>
       <td>
         <select class="type-sel ${s.type}" data-f="type">
-          <option value="weekday" ${s.type==='weekday'?'selected':''}>Día hábil</option>
-          <option value="holiday" ${s.type==='holiday'?'selected':''}>Día libre</option>
+          <option value="weekday" ${s.type==='weekday'?'selected':''}>${t('portal.typeWeekday')}</option>
+          <option value="holiday" ${s.type==='holiday'?'selected':''}>${t('portal.typeHoliday')}</option>
         </select>
       </td>
       <td>
         <input class="ot-input" type="text" value="${escAttr(s.description)}"
-          placeholder="Descripción del trabajo realizado…" data-f="description" />
+          placeholder="${t('portal.descPlaceholder')}" data-f="description" />
       </td>
       <td class="no-print">
         <button class="del-btn" data-del="${s.rowId}" title="Eliminar fila">×</button>
@@ -307,25 +311,25 @@ function renderCalc() {
 
   $('#calc-box').innerHTML = `
     <h3 style="font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:.05em;color:var(--text-muted);margin:0 0 14px">
-      Cálculo de Remuneración
+      ${t('portal.calcTitle')}
     </h3>
     <div class="calc-row">
-      <span class="cl">Días hábiles:</span>
+      <span class="cl">${t('portal.calcWeekday')}</span>
       <span class="ch">${wHours.toFixed(1)}h</span>
       <span class="cf">× ${pctStr(wRate)} × ${cur} ${fmt2(salary)}</span>
       <span class="ca">${cur} ${fmt2(wAmount)}</span>
     </div>
     <div class="calc-row">
-      <span class="cl">Días libres / festivos:</span>
+      <span class="cl">${t('portal.calcHoliday')}</span>
       <span class="ch">${hHours.toFixed(1)}h</span>
       <span class="cf">× ${pctStr(hRate)} × ${cur} ${fmt2(salary)}</span>
       <span class="ca">${cur} ${fmt2(hAmount)}</span>
     </div>
     <div class="calc-total">
-      <span class="lbl">Horas extras solicitadas</span>
+      <span class="lbl">${t('portal.calcTotal')}</span>
       <span class="val" style="color:${over?'var(--stamp)':'var(--ink)'}">${cur} ${fmt2(total)}</span>
     </div>
-    ${over ? `<div class="over-max-banner">⚠ El total (${cur} ${fmt2(total)}) supera el máximo permitido (${cur} ${fmt2(maxAllow)}, ${maxPct}% del sueldo).</div>` : ''}
+    ${over ? `<div class="over-max-banner">${t('portal.overMax', { total: cur+' '+fmt2(total), max: cur+' '+fmt2(maxAllow), pct: maxPct })}</div>` : ''}
   `;
 }
 
@@ -346,7 +350,7 @@ function renderEmpInfo() {
 async function save(status) {
   const { salary, wRate, hRate, wHours, hHours, wAmount, hAmount, total } = getTotals();
   const statusEl = $('#portal-status');
-  statusEl.textContent = 'Guardando…';
+  statusEl.textContent = t('portal.saving');
   statusEl.style.color = '';
 
   const payload = {
@@ -375,7 +379,7 @@ async function save(status) {
   }
   submissionId = data.id;
   submissionStatus = status;
-  statusEl.textContent = status === 'submitted' ? '✓ Formulario enviado' : '✓ Borrador guardado';
+  statusEl.textContent = status === 'submitted' ? t('portal.savedSubmitted') : t('portal.savedDraft');
   statusEl.style.color = 'var(--ok)';
   renderSubmitBtn();
 }
@@ -383,10 +387,10 @@ async function save(status) {
 function renderSubmitBtn() {
   const btn = $('#btn-submit');
   if (submissionStatus === 'submitted') {
-    btn.textContent = '✓ Enviado';
+    btn.textContent = t('portal.btnSubmitted');
     btn.disabled = true;
   } else {
-    btn.textContent = 'Enviar formulario';
+    btn.textContent = t('portal.btnSubmit');
     btn.disabled = false;
   }
 }
@@ -412,35 +416,35 @@ function doPrint() {
     <div class="print-page" style="padding:20pt 24pt">
       <div class="print-hdr">
         <strong>${esc(company.name || '')}</strong>
-        <span>Formulario de Cálculo de Horas Extras</span>
+        <span>${t('portal.printFormHeader')}</span>
       </div>
-      <h1>FORMULARIO DE CÁLCULO DE HORAS EXTRAS</h1>
+      <h1>${t('portal.printTitle')}</h1>
       <h2>${monthLabel}</h2>
       <table class="print-info" style="margin-bottom:6pt">
-        <tr><td>Nombre:</td><td><strong>${esc(profile.full_name)}</strong></td></tr>
-        <tr><td>Departamento:</td><td>${esc(profile.department || '—')}</td></tr>
-        <tr><td>Sueldo Básico:</td><td>${cur} ${fmt2(salary)}</td></tr>
-        <tr><td colspan="2"><strong>Máximo horas extras permitido (${maxPct}%) = ${cur} ${fmt2(maxAllow)}</strong></td></tr>
+        <tr><td>${t('portal.printName')}</td><td><strong>${esc(profile.full_name)}</strong></td></tr>
+        <tr><td>${t('portal.printDept')}</td><td>${esc(profile.department || '—')}</td></tr>
+        <tr><td>${t('portal.printSalary')}</td><td>${cur} ${fmt2(salary)}</td></tr>
+        <tr><td colspan="2"><strong>${t('portal.printMaxOT', { pct: maxPct, cur, max: fmt2(maxAllow) })}</strong></td></tr>
       </table>
 
       <table class="print-table">
         <thead>
           <tr>
             <th rowspan="2" style="width:24pt">No</th>
-            <th rowspan="2" style="width:70pt">Fecha</th>
-            <th rowspan="2" style="width:80pt">Horario</th>
-            <th colspan="2">Horas</th>
-            <th rowspan="2">Descripción</th>
+            <th rowspan="2" style="width:70pt">${t('portal.printThDate')}</th>
+            <th rowspan="2" style="width:80pt">${t('portal.printThSchedule')}</th>
+            <th colspan="2">${t('portal.printThHours')}</th>
+            <th rowspan="2">${t('portal.printThDesc')}</th>
           </tr>
           <tr>
-            <th style="width:46pt;text-align:center">Día Hábil</th>
-            <th style="width:46pt;text-align:center">Día Libre</th>
+            <th style="width:46pt;text-align:center">${t('portal.printThWeekday')}</th>
+            <th style="width:46pt;text-align:center">${t('portal.printThHoliday')}</th>
           </tr>
         </thead>
         <tbody>${rows}</tbody>
         <tfoot>
           <tr>
-            <td colspan="3" style="text-align:center">Total Horas</td>
+            <td colspan="3" style="text-align:center">${t('portal.printTotalHours')}</td>
             <td style="text-align:center">${wHours.toFixed(1)}</td>
             <td style="text-align:center">${hHours.toFixed(1)}</td>
             <td></td>
@@ -449,42 +453,42 @@ function doPrint() {
       </table>
 
       <div class="print-calc">
-        <div style="font-weight:bold;margin-bottom:6pt">Cálculo de Remuneración</div>
+        <div style="font-weight:bold;margin-bottom:6pt">${t('portal.printCalcTitle')}</div>
         <table>
           <tr>
-            <td style="color:#555">Días hábiles:</td>
+            <td style="color:#555">${t('portal.printCalcWeekday')}</td>
             <td style="font-family:monospace;padding:0 8pt">${wHours.toFixed(1)}</td>
             <td style="color:#555">× ${pctStr(wRate)} × ${cur} ${fmt2(salary)}</td>
             <td style="font-family:monospace;font-weight:bold;padding-left:10pt">${cur} ${fmt2(wAmount)}</td>
           </tr>
           <tr>
-            <td style="color:#555">Días libres:</td>
+            <td style="color:#555">${t('portal.printCalcHoliday')}</td>
             <td style="font-family:monospace;padding:0 8pt">${hHours.toFixed(1)}</td>
             <td style="color:#555">× ${pctStr(hRate)} × ${cur} ${fmt2(salary)}</td>
             <td style="font-family:monospace;font-weight:bold;padding-left:10pt">${cur} ${fmt2(hAmount)}</td>
           </tr>
         </table>
-        <div style="margin-top:8pt"><strong>Horas Extras Solicitadas = ${cur} ${fmt2(total)}</strong></div>
-        <div style="margin-top:2pt"><strong>Horas Extras a Pagar = ${cur} ${fmt2(total)}</strong></div>
+        <div style="margin-top:8pt"><strong>${t('portal.printOTRequested')} = ${cur} ${fmt2(total)}</strong></div>
+        <div style="margin-top:2pt"><strong>${t('portal.printOTPay')} = ${cur} ${fmt2(total)}</strong></div>
       </div>
 
       <div class="print-sigs">
         <div class="print-sig-cell">
           <div class="print-sig-line">
             ${authorizerName ? `<div><strong>${esc(authorizerName)}</strong></div>` : ''}
-            <div>Quien Autoriza</div>
+            <div>${t('portal.printSigAuthorizer')}</div>
           </div>
         </div>
         <div class="print-sig-cell">
           <div class="print-sig-line">
             ${reviewerName ? `<div><strong>${esc(reviewerName)}</strong></div>` : ''}
-            <div>Visto Bueno / Aprobado</div>
+            <div>${t('portal.printSigReviewer')}</div>
           </div>
         </div>
         <div class="print-sig-cell">
           <div class="print-sig-line">
             <div><strong>${esc(profile.full_name)}</strong></div>
-            <div style="font-size:9pt;color:#555">Quien Realizó las Horas Extras</div>
+            <div style="font-size:9pt;color:#555">${t('portal.printSigEmployee')}</div>
           </div>
         </div>
       </div>
@@ -576,7 +580,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
     if (id === 'btn-save')   { await save('draft'); }
     if (id === 'btn-submit') {
-      if (!confirm('¿Confirmas el envío? El administrador podrá revisar el formulario.')) return;
+      if (!confirm(t('portal.confirmSubmit'))) return;
       await save('submitted');
     }
     if (id === 'btn-print') { doPrint(); }
