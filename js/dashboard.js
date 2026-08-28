@@ -94,7 +94,7 @@ function setupNav() {
       ["report", "employees", "vacations", "holidays", "company", "backup"].forEach((v) => {
         document.getElementById(`view-${v}`).style.display = v === btn.dataset.view ? "block" : "none";
       });
-      if (btn.dataset.view === "employees") renderEmployeesTable();
+      if (btn.dataset.view === "employees") { renderEmployeesTable(); renderSalaryDeptTable(); }
       if (btn.dataset.view === "vacations") { loadVacationsSummary(); loadVacationsLog(); }
       if (btn.dataset.view === "holidays") { loadHolidayCountries(); loadHolidays(); }
       if (btn.dataset.view === "company") loadWorkSchedules();
@@ -122,7 +122,7 @@ function setupMonthDefault() {
 async function loadEmployees() {
   const { data, error } = await supabase
     .from("profiles")
-    .select("id, full_name, email, status, hire_date, termination_date, vacation_days_per_year, created_at")
+    .select("id, full_name, email, status, hire_date, termination_date, vacation_days_per_year, base_salary, department, created_at")
     .eq("role", "employee")
     .order("full_name");
   if (error) { console.error(error); return; }
@@ -186,7 +186,7 @@ function wireEmployeeActions() {
       if (!confirm(t("dash.emp.confirmSuspend"))) return;
       const { error } = await supabase.from("profiles").update({ status: "suspended" }).eq("id", btn.dataset.suspend);
       if (error) return alert(t("dash.emp.errSuspend", { msg: error.message }));
-      await loadEmployees(); renderEmployeesTable();
+      await loadEmployees(); renderEmployeesTable(); renderSalaryDeptTable();
     });
   });
 
@@ -196,7 +196,7 @@ function wireEmployeeActions() {
         .update({ status: "active", termination_date: null })
         .eq("id", btn.dataset.reactivate);
       if (error) return alert(t("dash.emp.errReactivate", { msg: error.message }));
-      await loadEmployees(); renderEmployeesTable();
+      await loadEmployees(); renderEmployeesTable(); renderSalaryDeptTable();
     });
   });
 
@@ -209,7 +209,7 @@ function wireEmployeeActions() {
         .update({ status: "terminated", termination_date: dateStr })
         .eq("id", btn.dataset.terminate);
       if (error) return alert(t("dash.emp.errTerminate", { msg: error.message }));
-      await loadEmployees(); renderEmployeesTable();
+      await loadEmployees(); renderEmployeesTable(); renderSalaryDeptTable();
     });
   });
 
@@ -219,7 +219,7 @@ function wireEmployeeActions() {
       if (!newName || newName.trim() === btn.dataset.name) return;
       const { error } = await supabase.from("profiles").update({ full_name: newName.trim() }).eq("id", btn.dataset.rename);
       if (error) return alert(t("dash.emp.errRename", { msg: error.message }));
-      await loadEmployees(); renderEmployeesTable();
+      await loadEmployees(); renderEmployeesTable(); renderSalaryDeptTable();
     });
   });
 
@@ -229,7 +229,7 @@ function wireEmployeeActions() {
       if (!confirm(t("dash.emp.confirmDelete2"))) return;
       const { error } = await supabase.from("profiles").delete().eq("id", btn.dataset.delete);
       if (error) return alert(t("dash.emp.errDelete", { msg: error.message }));
-      await loadEmployees(); renderEmployeesTable();
+      await loadEmployees(); renderEmployeesTable(); renderSalaryDeptTable();
     });
   });
 }
@@ -795,6 +795,58 @@ function exportCsv() {
   URL.revokeObjectURL(url);
 }
 
+function renderSalaryDeptTable() {
+  const tbody = $("#salary-dept-tbody");
+  if (!tbody) return;
+  if (!employees.length) {
+    tbody.innerHTML = `<tr><td colspan="3">${t("dash.emp.noneYet")}</td></tr>`;
+    return;
+  }
+  const cur = company.currency || "USD";
+  tbody.innerHTML = employees.map((e) => `
+    <tr data-sal-row="${e.id}">
+      <td>${escapeHtml(e.full_name)}</td>
+      <td><input class="sal-dept-input" type="text" value="${escapeHtml(e.department || "")}"
+        placeholder="${t("dash.emp.salaryDeptPlaceholder")}"
+        data-sal-dept="${e.id}" style="width:160px; padding:5px 8px; border:1px solid var(--line); border-radius:4px; font-size:13px" /></td>
+      <td>
+        <div style="display:flex; align-items:center; gap:6px">
+          <span class="hint" style="font-size:12px">${cur}</span>
+          <input class="sal-dept-input" type="number" value="${Number(e.base_salary || 0).toFixed(2)}"
+            min="0" step="0.01"
+            data-sal-salary="${e.id}" style="width:130px; padding:5px 8px; border:1px solid var(--line); border-radius:4px; font-size:13px; font-family:var(--font-display)" />
+          <span id="sal-status-${e.id}" style="font-size:12px; color:var(--ok)"></span>
+        </div>
+      </td>
+    </tr>
+  `).join("");
+
+  tbody.querySelectorAll("[data-sal-dept]").forEach((input) => {
+    input.addEventListener("change", () => saveSalaryDept(input.dataset.salDept));
+  });
+  tbody.querySelectorAll("[data-sal-salary]").forEach((input) => {
+    input.addEventListener("change", () => saveSalaryDept(input.dataset.salSalary));
+  });
+}
+
+async function saveSalaryDept(empId) {
+  const row = $(`[data-sal-row="${empId}"]`);
+  if (!row) return;
+  const dept   = row.querySelector(`[data-sal-dept="${empId}"]`)?.value?.trim() || "";
+  const salary = parseFloat(row.querySelector(`[data-sal-salary="${empId}"]`)?.value) || 0;
+  const statusEl = $(`#sal-status-${empId}`);
+  if (statusEl) statusEl.textContent = "…";
+
+  const { error } = await supabase.from("profiles").update({ department: dept, base_salary: salary }).eq("id", empId);
+  if (error) {
+    if (statusEl) { statusEl.textContent = "✗"; statusEl.style.color = "var(--stamp)"; }
+    return;
+  }
+  const emp = employees.find((e) => e.id === empId);
+  if (emp) { emp.department = dept; emp.base_salary = salary; }
+  if (statusEl) { statusEl.textContent = "✓"; statusEl.style.color = "var(--ok)"; setTimeout(() => { statusEl.textContent = ""; }, 2000); }
+}
+
 // ---------------------------------------------------------------------
 // 3. Vacaciones
 // ---------------------------------------------------------------------
@@ -1159,6 +1211,7 @@ function setupFormHandlers() {
   $("#btn-save-hours").addEventListener("click", handleSaveWorkHours);
   $("#btn-save-schedule").addEventListener("click", handleSaveSchedule);
   $("#btn-save-rules")?.addEventListener("click", handleSaveAttendanceRules);
+  $("#btn-save-ot-rates")?.addEventListener("click", handleSaveOtRates);
   renderAttendanceRules();
   $("#btn-change-pw").addEventListener("click", handleChangePassword);
   $("#btn-change-email").addEventListener("click", handleChangeEmail);
@@ -1224,7 +1277,7 @@ async function handleAddEmployee(e) {
     $("#form-add-employee").reset();
     $("#new-emp-hire-date").value = hire_date;
     await loadEmployees();
-    renderEmployeesTable();
+    renderEmployeesTable(); renderSalaryDeptTable();
   } catch (err) {
     alertBox.textContent = traducirErrorAlta(err.message);
     alertBox.className = "alert error";
@@ -1553,6 +1606,13 @@ function renderAttendanceRules() {
   const otMinInput = $("#overtime-min-minutes");
   if (graceInput) graceInput.value = company.late_grace_minutes ?? 0;
   if (otMinInput) otMinInput.value = company.overtime_min_minutes ?? 0;
+
+  const wdInput  = $("#ot-rate-weekday");
+  const holInput = $("#ot-rate-holiday");
+  const maxInput = $("#ot-max-pct");
+  if (wdInput)  wdInput.value  = ((parseFloat(company.ot_rate_weekday_pct) || 0.005) * 100).toFixed(2);
+  if (holInput) holInput.value = ((parseFloat(company.ot_rate_holiday_pct) || 0.0075) * 100).toFixed(2);
+  if (maxInput) maxInput.value = parseFloat(company.ot_max_pct) ?? 28;
 }
 
 async function handleSaveAttendanceRules() {
@@ -1582,6 +1642,32 @@ async function handleSaveAttendanceRules() {
   company.late_grace_minutes = grace;
   company.overtime_min_minutes = otMin;
   statusSpan.textContent = t("dash.company.rulesSaved");
+  statusSpan.style.color = "";
+}
+
+async function handleSaveOtRates() {
+  const statusSpan = $("#ot-rates-status");
+  statusSpan.textContent = "";
+
+  const wdPct  = parseFloat($("#ot-rate-weekday")?.value ?? "0.5") / 100;
+  const holPct = parseFloat($("#ot-rate-holiday")?.value ?? "0.75") / 100;
+  const maxPct = parseFloat($("#ot-max-pct")?.value ?? "28");
+
+  const { data, error } = await supabase
+    .from("companies")
+    .update({ ot_rate_weekday_pct: wdPct, ot_rate_holiday_pct: holPct, ot_max_pct: maxPct })
+    .eq("id", company.id)
+    .select("id");
+
+  if (error || !data?.length) {
+    statusSpan.textContent = t("dash.company.otRatesErrSave", { msg: error?.message || "RLS bloqueó el update" });
+    statusSpan.style.color = "var(--stamp)";
+    return;
+  }
+  company.ot_rate_weekday_pct = wdPct;
+  company.ot_rate_holiday_pct = holPct;
+  company.ot_max_pct = maxPct;
+  statusSpan.textContent = t("dash.company.otRatesSaved");
   statusSpan.style.color = "";
 }
 

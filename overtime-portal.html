@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Portal Horas Extras · Zyntra</title>
+<link rel="stylesheet" href="css/styles.css" />
+<script src="js/config.js"></script>
+<style>
+  .portal-wrap   { max-width:940px; margin:0 auto; padding:24px 24px 48px; }
+  .emp-info-grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(170px,1fr)); gap:12px; }
+  .emp-info-cell { padding:14px 18px; background:var(--paper-card); border:1px solid var(--line); border-radius:6px; }
+  .emp-info-cell .lbl { font-size:11px; font-weight:600; text-transform:uppercase; letter-spacing:.05em; color:var(--text-muted); margin-bottom:4px; }
+  .emp-info-cell .val { font-size:16px; font-weight:700; color:var(--ink); font-family:var(--font-display); }
+
+  .ot-table { width:100%; border-collapse:collapse; font-size:13px; }
+  .ot-table th { background:#F1ECDF; font-size:11px; text-transform:uppercase; letter-spacing:.04em; color:var(--text-muted); padding:8px 10px; text-align:left; border-bottom:2px solid var(--line); }
+  .ot-table td { padding:5px 6px; border-bottom:1px solid var(--line); vertical-align:middle; }
+  .ot-table .num-col { font-family:var(--font-display); }
+  .ot-input { width:100%; padding:5px 8px; border:1px solid var(--line); border-radius:4px; font-size:13px; background:var(--paper); font-family:inherit; }
+  .ot-input:focus { outline:2px solid var(--stamp); border-color:transparent; }
+  .ot-input.num { width:72px; font-family:var(--font-display); text-align:center; }
+  .ot-input.time { width:80px; }
+  .type-sel { padding:5px 8px; border:1px solid var(--line); border-radius:4px; font-size:12px; background:var(--paper); cursor:pointer; }
+  .type-sel.weekday { color:var(--ink); border-color:var(--line); }
+  .type-sel.holiday { color:var(--overtime); border-color:var(--overtime); }
+  .del-btn { background:none; border:none; cursor:pointer; color:var(--text-muted); font-size:18px; padding:2px 6px; border-radius:4px; }
+  .del-btn:hover { color:var(--stamp); background:var(--stamp-soft); }
+
+  .calc-card { background:var(--paper-card); border:1px solid var(--line); border-radius:6px; padding:20px 24px; margin-top:20px; }
+  .calc-row { display:flex; align-items:baseline; gap:8px; margin-bottom:6px; font-size:14px; }
+  .calc-row .cl { color:var(--text-muted); min-width:160px; }
+  .calc-row .ch { font-family:var(--font-display); font-weight:700; min-width:48px; }
+  .calc-row .cf { color:var(--text-muted); font-size:12px; flex:1; }
+  .calc-row .ca { font-family:var(--font-display); font-weight:700; margin-left:auto; }
+  .calc-total { display:flex; justify-content:space-between; align-items:center; margin-top:12px; padding-top:12px; border-top:2px solid var(--ink); }
+  .calc-total .lbl { font-size:15px; font-weight:700; color:var(--ink); }
+  .calc-total .val { font-family:var(--font-display); font-size:22px; font-weight:700; }
+  .over-max-banner { margin-top:10px; padding:8px 12px; background:var(--stamp-soft); color:#8A2E09; border-radius:4px; font-size:12px; }
+
+  /* ── PRINT ──────────────────────────────────────────── */
+  @media print {
+    body { background:#fff !important; }
+    .no-print { display:none !important; }
+    #print-view { display:block !important; }
+    #screen-portal .portal-wrap { display:none !important; }
+    .print-page { font-family:'Times New Roman',serif; font-size:11pt; color:#000; max-width:100%; }
+    .print-page h1 { font-size:13pt; font-weight:bold; text-align:center; margin:6pt 0 3pt; }
+    .print-page h2 { font-size:11pt; font-weight:bold; text-align:center; margin:2pt 0 10pt; }
+    .print-hdr { display:flex; justify-content:space-between; font-size:9pt; margin-bottom:6pt; }
+    .print-info td { padding:2pt 4pt; font-size:10.5pt; }
+    .print-table { width:100%; border-collapse:collapse; font-size:9.5pt; margin-top:8pt; }
+    .print-table th, .print-table td { border:1pt solid #333; padding:3pt 5pt; }
+    .print-table thead tr:first-child th { background:#e8e8e8; font-weight:bold; }
+    .print-table thead tr:last-child th { background:#f0f0f0; font-size:8.5pt; }
+    .print-table tfoot td { background:#f0f0f0; font-weight:bold; }
+    .print-calc { margin-top:10pt; font-size:10pt; }
+    .print-calc table { width:65%; }
+    .print-calc td { padding:2pt 4pt; }
+    .print-sigs { margin-top:40pt; display:grid; grid-template-columns:1fr 1fr 1fr; gap:16pt; font-size:10pt; }
+    .print-sig-cell { text-align:center; }
+    .print-sig-line { border-top:1pt solid #333; margin-top:48pt; padding-top:4pt; }
+  }
+
+  @media screen {
+    #print-view { display:none; }
+  }
+</style>
+</head>
+<body>
+
+<!-- ══════════════ LOGIN ══════════════ -->
+<div id="screen-login" class="auth-shell">
+  <div class="auth-card" style="position:relative">
+    <div class="auth-brand">⏱ ZYNTRA</div>
+    <h1 class="auth-title" style="font-size:18px">Portal de Horas Extras</h1>
+    <p class="auth-subtitle">Ingresa con tu correo y contraseña para ver y reportar tus horas extras del mes.</p>
+    <div id="login-alert" class="alert"></div>
+    <form id="form-login" class="form-panel active">
+      <div class="field">
+        <label for="login-email">Correo</label>
+        <input id="login-email" type="email" required autocomplete="email" />
+      </div>
+      <div class="field">
+        <label for="login-password">Contraseña</label>
+        <input id="login-password" type="password" required autocomplete="current-password" />
+      </div>
+      <button class="btn btn-primary" type="submit" style="width:100%" id="login-btn">Ingresar</button>
+    </form>
+  </div>
+</div>
+
+<!-- ══════════════ PORTAL ══════════════ -->
+<div id="screen-portal" style="display:none">
+  <!-- TOP BAR -->
+  <div class="no-print" style="background:var(--ink);padding:12px 24px;display:flex;justify-content:space-between;align-items:center">
+    <div style="color:var(--text-on-ink);font-family:var(--font-display);font-size:12px;font-weight:700;letter-spacing:.1em">⏱ ZYNTRA</div>
+    <div style="display:flex;gap:12px;align-items:center">
+      <select id="month-select" style="padding:5px 10px;border:1px solid rgba(255,255,255,.25);border-radius:4px;background:var(--ink-soft);color:var(--text-on-ink);font-size:13px"></select>
+      <button id="btn-logout" class="btn btn-ghost" style="color:var(--text-on-ink);border-color:rgba(255,255,255,.3);font-size:13px">Salir</button>
+    </div>
+  </div>
+
+  <div class="portal-wrap">
+    <!-- Employee info -->
+    <div style="margin-bottom:20px">
+      <div id="portal-company" style="font-size:22px;font-weight:700;color:var(--ink);margin-bottom:14px"></div>
+      <div class="emp-info-grid">
+        <div class="emp-info-cell"><div class="lbl">Nombre</div><div class="val" id="info-name"></div></div>
+        <div class="emp-info-cell"><div class="lbl">Departamento</div><div class="val" id="info-dept"></div></div>
+        <div class="emp-info-cell"><div class="lbl">Sueldo Básico</div><div class="val" id="info-salary"></div></div>
+        <div class="emp-info-cell"><div class="lbl">Máximo Permitido</div><div class="val" id="info-max" style="color:var(--overtime)"></div></div>
+      </div>
+    </div>
+
+    <!-- Sessions -->
+    <div class="no-print" style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px">
+      <h2 style="font-size:15px;font-weight:700;color:var(--ink);margin:0">Sesiones de Horas Extras</h2>
+      <button id="btn-add-row" class="btn btn-ghost" style="font-size:13px">+ Agregar fila</button>
+    </div>
+
+    <div style="overflow-x:auto">
+      <table class="ot-table">
+        <thead>
+          <tr>
+            <th style="width:28px">#</th>
+            <th style="width:120px">Fecha</th>
+            <th style="width:172px">Horario</th>
+            <th style="width:74px">Horas</th>
+            <th style="width:110px">Tipo</th>
+            <th>Descripción / Keterangan</th>
+            <th class="no-print" style="width:32px"></th>
+          </tr>
+        </thead>
+        <tbody id="sessions-tbody"></tbody>
+      </table>
+    </div>
+
+    <!-- Calculation -->
+    <div class="calc-card" id="calc-box"></div>
+
+    <!-- Status + Actions -->
+    <div class="no-print" style="margin-top:20px;display:flex;gap:10px;align-items:center;flex-wrap:wrap">
+      <button id="btn-save"   class="btn btn-primary">Guardar borrador</button>
+      <button id="btn-submit" class="btn btn-stamp">Enviar formulario</button>
+      <button id="btn-print"  class="btn btn-ghost">🖨 Imprimir</button>
+      <span id="portal-status" class="hint" style="margin-left:auto"></span>
+    </div>
+  </div>
+
+  <!-- ══ PRINT VIEW (only visible when printing) ══ -->
+  <div id="print-view">
+    <!-- generated by JS -->
+  </div>
+</div>
+
+<script type="module" src="js/overtime-portal.js"></script>
+</body>
+</html>

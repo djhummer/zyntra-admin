@@ -341,6 +341,24 @@ const dict = {
   "dash.company.rulesSaved":  { es: "Reglas guardadas.", en: "Rules saved.", id: "Aturan disimpan." },
   "dash.company.rulesErrSave": { es: "No se pudo guardar: {msg}", en: "Couldn't save: {msg}", id: "Gagal menyimpan: {msg}" },
 
+  // ---------------- Dashboard: Tarifas horas extras ----------------
+  "dash.company.otRatesTitle":    { es: "Tarifas de horas extras", en: "Overtime rates", id: "Tarif lembur" },
+  "dash.company.otRatesHint":     { es: "Porcentaje del sueldo básico que se paga por hora extra. El máximo define el tope mensual permitido.", en: "Percentage of the base salary paid per overtime hour. The maximum defines the monthly cap allowed.", id: "Persentase gaji pokok yang dibayarkan per jam lembur. Maksimum menentukan batas bulanan yang diizinkan." },
+  "dash.company.otRateWeekday":   { es: "Tarifa día hábil (% del sueldo/hora)", en: "Weekday rate (% of salary/hour)", id: "Tarif hari kerja (% gaji/jam)" },
+  "dash.company.otRateHoliday":   { es: "Tarifa día libre / festivo (% del sueldo/hora)", en: "Holiday / day-off rate (% of salary/hour)", id: "Tarif hari libur / festif (% gaji/jam)" },
+  "dash.company.otMaxPct":        { es: "Máximo mensual permitido (% del sueldo básico)", en: "Monthly maximum allowed (% of base salary)", id: "Maksimum bulanan (% gaji pokok)" },
+  "dash.company.otRatesSave":     { es: "Guardar tarifas", en: "Save rates", id: "Simpan tarif" },
+  "dash.company.otRatesSaved":    { es: "Tarifas guardadas.", en: "Rates saved.", id: "Tarif disimpan." },
+  "dash.company.otRatesErrSave":  { es: "No se pudo guardar: {msg}", en: "Couldn't save: {msg}", id: "Gagal menyimpan: {msg}" },
+
+  // ---------------- Dashboard: Sueldo y departamento ----------------
+  "dash.emp.salaryTitle":          { es: "Sueldo y departamento", en: "Salary & department", id: "Gaji & departemen" },
+  "dash.emp.salaryHint":           { es: "El sueldo básico se usa para calcular la remuneración de horas extras en el portal del empleado.", en: "The base salary is used to calculate overtime pay in the employee portal.", id: "Gaji pokok digunakan untuk menghitung upah lembur di portal karyawan." },
+  "dash.emp.salaryThDept":         { es: "Departamento", en: "Department", id: "Departemen" },
+  "dash.emp.salaryThSalary":       { es: "Sueldo básico", en: "Base salary", id: "Gaji pokok" },
+  "dash.emp.salaryDeptPlaceholder":{ es: "Ej. Operaciones", en: "e.g. Operations", id: "Mis. Operasional" },
+  "dash.emp.portalLink":           { es: "Portal de horas extras ↗", en: "Overtime portal ↗", id: "Portal lembur ↗" },
+
   // ---------------- Dashboard: Cambiar contraseña ----------------
   "dash.company.pwTitle":   { es: "Cambiar contraseña", en: "Change password", id: "Ganti kata sandi" },
   "dash.company.pwHint":    { es: "Tu contraseña se almacena de forma segura en Supabase, nunca en este sitio.", en: "Your password is stored securely in Supabase, never on this site.", id: "Kata sandimu disimpan dengan aman di Supabase, tidak pernah di situs ini." },
