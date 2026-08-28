@@ -1,5 +1,5 @@
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
-import { t, initI18n, renderLangSwitcher, applyStaticTranslations } from "./i18n.js";
+import { t, initI18n, renderLangSwitcher, applyStaticTranslations, currentLocale } from "./i18n.js";
 
 const supabase = createClient(window.APP_CONFIG.SUPABASE_URL, window.APP_CONFIG.SUPABASE_ANON_KEY);
 const $ = (sel, root = document) => root.querySelector(sel);
@@ -119,12 +119,14 @@ function setupMonthSelect() {
   const sel = $('#month-select');
   const tz  = company.timezone;
   const now = new Date();
+  const locale = currentLocale();
   sel.innerHTML = '';
-  for (let i = 0; i < 13; i++) {
+  // Show only current month and the immediately previous month (grace period)
+  for (let i = 0; i < 2; i++) {
     const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
     const y = parseInt(new Intl.DateTimeFormat('en-CA', { timeZone: tz, year:  'numeric' }).format(d));
     const m = parseInt(new Intl.DateTimeFormat('en-CA', { timeZone: tz, month: 'numeric' }).format(d));
-    const label = new Intl.DateTimeFormat('es', { year: 'numeric', month: 'long' }).format(d);
+    const label = new Intl.DateTimeFormat(locale, { year: 'numeric', month: 'long' }).format(d);
     const opt = document.createElement('option');
     opt.value = `${y}-${pad(m)}`;
     opt.textContent = label.charAt(0).toUpperCase() + label.slice(1);
@@ -514,7 +516,7 @@ function doPrint() {
   const { authorizer_name: authName, authorizer_position: authPos,
           reviewer_name: revName, reviewer_subtitle: revSub, reviewer_position: revPos } = readSigFields();
   const cur = company.currency || 'USD';
-  const monthLabel = new Intl.DateTimeFormat('es', { year: 'numeric', month: 'long' })
+  const monthLabel = new Intl.DateTimeFormat(currentLocale(), { year: 'numeric', month: 'long' })
     .format(new Date(currentYear, currentMonth - 1, 1)).toUpperCase();
 
   const rows = sessions.map((s, i) => `
@@ -572,15 +574,15 @@ function doPrint() {
         <table>
           <tr>
             <td style="color:#555">${t('portal.printCalcWeekday')}</td>
-            <td style="font-family:monospace;padding:0 8pt">${wHours.toFixed(1)}</td>
+            <td style="font-family:Arial,sans-serif;padding:0 8pt">${wHours.toFixed(1)}</td>
             <td style="color:#555">× ${pctStr(wRate)} × ${cur} ${fmt2(salary)}</td>
-            <td style="font-family:monospace;font-weight:bold;padding-left:10pt">${cur} ${fmt2(wAmount)}</td>
+            <td style="font-family:Arial,sans-serif;font-weight:bold;padding-left:10pt">${cur} ${fmt2(wAmount)}</td>
           </tr>
           <tr>
             <td style="color:#555">${t('portal.printCalcHoliday')}</td>
-            <td style="font-family:monospace;padding:0 8pt">${hHours.toFixed(1)}</td>
+            <td style="font-family:Arial,sans-serif;padding:0 8pt">${hHours.toFixed(1)}</td>
             <td style="color:#555">× ${pctStr(hRate)} × ${cur} ${fmt2(salary)}</td>
-            <td style="font-family:monospace;font-weight:bold;padding-left:10pt">${cur} ${fmt2(hAmount)}</td>
+            <td style="font-family:Arial,sans-serif;font-weight:bold;padding-left:10pt">${cur} ${fmt2(hAmount)}</td>
           </tr>
         </table>
         <div style="margin-top:8pt"><strong>${t('portal.printOTRequested')} = ${cur} ${fmt2(total)}</strong></div>
@@ -588,7 +590,7 @@ function doPrint() {
       </div>
 
       <!-- Top row: Authorizer (left) + Employee (right) -->
-      <div style="display:grid;grid-template-columns:1fr 1fr;gap:20pt;margin-top:40pt;font-size:10pt;font-family:'Times New Roman',serif">
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:20pt;margin-top:40pt;font-size:10pt;font-family:Arial,sans-serif">
         <div style="text-align:center">
           <div style="font-weight:bold">${t('portal.printSigAuthTitle')}</div>
           <div style="margin-top:48pt;border-top:1pt solid #333;padding-top:4pt">
@@ -604,7 +606,7 @@ function doPrint() {
         </div>
       </div>
       <!-- Bottom center: Reviewer/Approver -->
-      <div style="text-align:center;margin-top:30pt;font-size:10pt;font-family:'Times New Roman',serif;max-width:200pt;margin-left:auto;margin-right:auto">
+      <div style="text-align:center;margin-top:30pt;font-size:10pt;font-family:Arial,sans-serif;max-width:200pt;margin-left:auto;margin-right:auto">
         <div style="font-weight:bold">${t('portal.printSigRevTitle')}</div>
         ${revSub ? `<div style="font-size:9pt;color:#555">${esc(revSub)}</div>` : ''}
         <div style="margin-top:48pt;border-top:1pt solid #333;padding-top:4pt">
