@@ -18,6 +18,7 @@ let authorizerPosition = '';
 let reviewerName       = '';
 let reviewerSubtitle   = '';
 let reviewerPosition   = '';
+let rejectionNote      = '';
 
 const pad = (n) => String(n).padStart(2, '0');
 
@@ -141,6 +142,7 @@ async function loadMonth(year, month) {
   submissionId = null; submissionStatus = 'draft';
   authorizerName = ''; authorizerPosition = '';
   reviewerName   = ''; reviewerSubtitle   = ''; reviewerPosition = '';
+  rejectionNote  = '';
   sessions = [];
 
   const tz = company.timezone;
@@ -181,6 +183,7 @@ async function loadMonth(year, month) {
     reviewerName       = subRes.data.reviewer_name       || '';
     reviewerSubtitle   = subRes.data.reviewer_subtitle   || '';
     reviewerPosition   = subRes.data.reviewer_position   || '';
+    rejectionNote      = subRes.data.rejection_note      || '';
     sessions = applyRounding(subRes.data.sessions);
   } else {
     sessions = buildFromRecords(recRes.data || [], tz);
@@ -468,13 +471,40 @@ async function save(status) {
 }
 
 function renderSubmitBtn() {
-  const btn = $('#btn-submit');
-  if (submissionStatus === 'submitted') {
-    btn.textContent = t('portal.btnSubmitted');
-    btn.disabled = true;
+  const submitBtn = $('#btn-submit');
+  const printBtn  = $('#btn-print');
+  const banner    = $('#rejection-banner');
+
+  // Submit button state
+  if (submissionStatus === 'submitted' || submissionStatus === 'approved') {
+    submitBtn.textContent = t('portal.btnSubmitted');
+    submitBtn.disabled = true;
   } else {
-    btn.textContent = t('portal.btnSubmit');
-    btn.disabled = false;
+    submitBtn.textContent = t('portal.btnSubmit');
+    submitBtn.disabled = false;
+  }
+
+  // Print button: only enabled when approved
+  if (printBtn) {
+    const isApproved = submissionStatus === 'approved';
+    printBtn.disabled = !isApproved;
+    printBtn.title = isApproved ? '' : t('portal.printDisabledHint');
+    printBtn.style.opacity = isApproved ? '' : '0.45';
+    printBtn.style.cursor  = isApproved ? '' : 'not-allowed';
+  }
+
+  // Rejection banner
+  if (banner) {
+    if (submissionStatus === 'rejected') {
+      banner.style.display = '';
+      banner.innerHTML = `
+        <div style="font-weight:700;font-size:13px;margin-bottom:6px">⚠ ${t('portal.rejectedTitle')}</div>
+        ${rejectionNote ? `<div style="font-size:13px;margin-bottom:6px"><strong>${t('portal.rejectedNoteLabel')}</strong> ${esc(rejectionNote)}</div>` : ''}
+        <div style="font-size:12px;color:#7F1D1D">${t('portal.rejectedHint')}</div>
+      `;
+    } else {
+      banner.style.display = 'none';
+    }
   }
 }
 
@@ -673,7 +703,7 @@ document.addEventListener('DOMContentLoaded', () => {
       if (!confirm(t('portal.confirmSubmit'))) return;
       await save('submitted');
     }
-    if (id === 'btn-print') { doPrint(); }
+    if (id === 'btn-print' && !$('#btn-print').disabled) { doPrint(); }
   });
 
   init();

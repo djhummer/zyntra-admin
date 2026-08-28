@@ -535,6 +535,10 @@ const dict = {
   "portal.printSigAuthorizer": { es: "Quien Autoriza",            en: "Authorizer",               id: "Yang Mengizinkan" },
   "portal.printSigReviewer":   { es: "Visto Bueno / Aprobado",    en: "Reviewer / Approved",      id: "Pemeriksa / Disetujui" },
   "portal.printSigEmployee":   { es: "Quien Realizó las Horas Extras", en: "Employee who worked overtime", id: "Karyawan yang melakukan lembur" },
+  "portal.rejectedTitle":      { es: "Formulario rechazado",      en: "Form rejected",            id: "Formulir ditolak" },
+  "portal.rejectedNoteLabel":  { es: "Motivo:",                   en: "Reason:",                  id: "Alasan:" },
+  "portal.rejectedHint":       { es: "Puedes modificar el formulario y volver a enviarlo para su revisión.", en: "You can edit the form and resubmit it for review.", id: "Kamu bisa mengubah formulir dan mengirimnya kembali untuk ditinjau." },
+  "portal.printDisabledHint":  { es: "Solo disponible cuando el formulario está aprobado", en: "Only available when the form is approved", id: "Hanya tersedia saat formulir disetujui" },
 
   // ---------------- Super-admin-setup ----------------
   "sas.pageTitle": { es: "ZyntrAbsen · Configuración inicial", en: "ZyntrAbsen · Initial setup", id: "ZyntrAbsen · Pengaturan awal" },
