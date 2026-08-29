@@ -489,6 +489,19 @@ const dict = {
   "sa.deleteFinalConfirm": { es: "¿Estás absolutamente seguro? Esta es IRREVERSIBLE y eliminará todos los datos de «{name}».", en: "Are you absolutely sure? This is IRREVERSIBLE and will delete all data for «{name}».", id: "Apakah kamu benar-benar yakin? Ini TIDAK DAPAT DIBATALKAN dan akan menghapus semua data «{name}».", fr: "Êtes-vous absolument certain ? C'est IRRÉVERSIBLE et supprimera toutes les données de «{name}»." },
   "sa.deleteErr":          { es: "Error al eliminar: {msg}", en: "Error deleting: {msg}", id: "Kesalahan saat menghapus: {msg}", fr: "Erreur lors de la suppression : {msg}" },
 
+  // ── Super admin: edit & plan ──
+  "sa.thPlan":         { es: "Plan", en: "Plan", id: "Paket", fr: "Plan" },
+  "sa.planNone":       { es: "Sin plan", en: "No plan", id: "Tanpa paket", fr: "Sans plan" },
+  "sa.btnEdit":        { es: "Editar", en: "Edit", id: "Edit", fr: "Modifier" },
+  "sa.editName":       { es: "Nombre de la empresa", en: "Company name", id: "Nama perusahaan", fr: "Nom de l'entreprise" },
+  "sa.editPlanStart":  { es: "Inicio del plan", en: "Plan start", id: "Mulai paket", fr: "Début du plan" },
+  "sa.editPlanEnd":    { es: "Fin del plan", en: "Plan end", id: "Akhir paket", fr: "Fin du plan" },
+  "sa.editSave":       { es: "Guardar", en: "Save", id: "Simpan", fr: "Enregistrer" },
+  "sa.editCancel":     { es: "Cancelar", en: "Cancel", id: "Batal", fr: "Annuler" },
+  "sa.editErrName":    { es: "El nombre es obligatorio.", en: "Name is required.", id: "Nama wajib diisi.", fr: "Le nom est obligatoire." },
+  "sa.autoSuspendMsg": { es: "{n} empresa(s) suspendida(s) automáticamente por vencimiento de plan.", en: "{n} company/companies auto-suspended due to plan expiry.", id: "{n} perusahaan ditangguhkan otomatis karena paket kadaluarsa.", fr: "{n} entreprise(s) suspendue(s) automatiquement pour expiration de plan." },
+  "sa.planExpiresIn":  { es: "⚠ {d}d", en: "⚠ {d}d", id: "⚠ {d}h", fr: "⚠ {d}j" },
+
   // ---------------- Portal de horas extras (empleado) ----------------
   "portal.title":              { es: "Portal de Horas Extras",    en: "Overtime Portal",          id: "Portal Lembur",                fr: "Portail Heures Supplémentaires" },
   "portal.subtitle":           { es: "Ingresa con tu correo y contraseña para ver y reportar tus horas extras del mes.", en: "Log in with your email and password to view and report your overtime for the month.", id: "Masuk dengan email dan kata sandi untuk melihat dan melaporkan lembur bulan ini.", fr: "Connectez-vous avec votre e-mail et mot de passe pour voir et déclarer vos heures supplémentaires du mois." },
