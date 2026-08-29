@@ -174,8 +174,8 @@ a { color: var(--stamp); }
   flex-direction: column;
 }
 .sidebar-brand { font-family: var(--font-display); font-weight: 700; font-size: 13px; letter-spacing: .1em; text-transform: uppercase; color: var(--stamp); }
-.sidebar-logo-img { width: 44px; height: 44px; border-radius: 8px; object-fit: cover; margin-top: 10px; background: #fff; }
-.sidebar-company { font-weight: 600; margin-top: 4px; margin-bottom: 28px; font-size: 15px; }
+.sidebar-logo-img { width: 44px; height: 44px; border-radius: 8px; object-fit: cover; margin-top: 10px; background: #fff; display: block; margin-left: auto; margin-right: auto; }
+.sidebar-company { font-weight: 600; margin-top: 4px; margin-bottom: 28px; font-size: 15px; text-align: center; }
 .sidebar-nav { display: flex; flex-direction: column; gap: 4px; flex: 1; }
 .sidebar-nav button {
   text-align: left;
