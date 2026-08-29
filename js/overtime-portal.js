@@ -80,7 +80,7 @@ async function boot() {
   const { data: prof, error } = await supabase
     .from('profiles')
     .select(`id, role, full_name, department, base_salary, company_id,
-             companies(id, name, timezone, ot_rate_weekday_pct, ot_rate_holiday_pct, ot_max_pct)`)
+             companies(id, name, timezone, ot_rate_weekday_pct, ot_rate_holiday_pct, ot_max_pct, report_header)`)
     .eq('id', user.id)
     .single();
 
@@ -533,7 +533,7 @@ function doPrint() {
     <div class="print-page" style="padding:20pt 24pt">
       <div class="print-hdr">
         <strong>${esc(company.name || '')}</strong>
-        <span>${t('portal.printFormHeader')}</span>
+        <span style="text-align:right;white-space:pre-line">${esc(company.report_header || t('portal.printFormHeader'))}</span>
       </div>
       <h1>${t('portal.printTitle')}</h1>
       <h2>${monthLabel}</h2>

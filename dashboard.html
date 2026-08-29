@@ -335,6 +335,21 @@
       </div>
 
       <div style="margin-top:32px; padding-top:28px; border-top:1px solid var(--line)">
+        <h2 class="main-title" style="font-size:16px; margin-bottom:6px" data-i18n="dash.company.reportHeaderTitle">Encabezado del formulario de horas extras</h2>
+        <p class="hint" style="margin-bottom:16px" data-i18n="dash.company.reportHeaderHint">
+          Este texto aparecerá en la esquina superior derecha del formulario impreso de horas extras.
+        </p>
+        <div class="field" style="max-width:480px">
+          <label for="report-header-text" data-i18n="dash.company.reportHeaderLabel">Texto de referencia</label>
+          <textarea id="report-header-text" rows="3" style="width:100%; padding:8px 10px; border:1px solid var(--line); border-radius:4px; font-size:13px; font-family:inherit; resize:vertical" data-i18n-placeholder="dash.company.reportHeaderPlaceholder"></textarea>
+        </div>
+        <div style="margin-top:14px; display:flex; align-items:center; gap:14px">
+          <button class="btn btn-primary" id="btn-save-report-header" type="button" data-i18n="dash.company.reportHeaderSave">Guardar encabezado</button>
+          <span id="report-header-status" class="hint"></span>
+        </div>
+      </div>
+
+      <div style="margin-top:32px; padding-top:28px; border-top:1px solid var(--line)">
         <h2 class="main-title" style="font-size:16px; margin-bottom:6px" data-i18n="dash.company.pwTitle">Cambiar contraseña</h2>
         <p class="hint" style="margin-bottom:16px" data-i18n="dash.company.pwHint">
           Tu contraseña se almacena de forma segura en Supabase, nunca en este sitio.

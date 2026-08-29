@@ -366,6 +366,15 @@ const dict = {
   "dash.company.otRatesSaved":    { es: "Tarifas guardadas.", en: "Rates saved.", id: "Tarif disimpan.", fr: "Taux enregistrés." },
   "dash.company.otRatesErrSave":  { es: "No se pudo guardar: {msg}", en: "Couldn't save: {msg}", id: "Gagal menyimpan: {msg}", fr: "Impossible d'enregistrer : {msg}" },
 
+  // ---------------- Dashboard: Encabezado formulario OT ----------------
+  "dash.company.reportHeaderTitle":       { es: "Encabezado del formulario de horas extras", en: "Overtime form header", id: "Header formulir lembur", fr: "En-tête du formulaire d'heures supplémentaires" },
+  "dash.company.reportHeaderHint":        { es: "Este texto aparecerá en la esquina superior derecha del formulario impreso de horas extras.", en: "This text will appear in the top-right corner of the printed overtime form.", id: "Teks ini akan muncul di pojok kanan atas formulir lembur yang dicetak.", fr: "Ce texte apparaîtra dans le coin supérieur droit du formulaire d'heures supplémentaires imprimé." },
+  "dash.company.reportHeaderLabel":       { es: "Texto de referencia", en: "Reference text", id: "Teks referensi", fr: "Texte de référence" },
+  "dash.company.reportHeaderPlaceholder": { es: "Ej. Lampiran B dari SE Sekjen\nSE 100/KU/II/2000/02", en: "e.g. Lampiran B dari SE Sekjen\nSE 100/KU/II/2000/02", id: "Mis. Lampiran B dari SE Sekjen\nSE 100/KU/II/2000/02", fr: "Ex. Lampiran B dari SE Sekjen\nSE 100/KU/II/2000/02" },
+  "dash.company.reportHeaderSave":        { es: "Guardar encabezado", en: "Save header", id: "Simpan header", fr: "Enregistrer l'en-tête" },
+  "dash.company.reportHeaderSaved":       { es: "Encabezado guardado.", en: "Header saved.", id: "Header disimpan.", fr: "En-tête enregistré." },
+  "dash.company.reportHeaderErrSave":     { es: "No se pudo guardar: {msg}", en: "Couldn't save: {msg}", id: "Gagal menyimpan: {msg}", fr: "Impossible d'enregistrer : {msg}" },
+
   // ---------------- Dashboard: Sueldo y departamento ----------------
   "dash.emp.salaryTitle":          { es: "Sueldo y departamento", en: "Salary & department", id: "Gaji & departemen", fr: "Salaire et département" },
   "dash.emp.salaryHint":           { es: "El sueldo básico se usa para calcular la remuneración de horas extras en el portal del empleado.", en: "The base salary is used to calculate overtime pay in the employee portal.", id: "Gaji pokok digunakan untuk menghitung upah lembur di portal karyawan.", fr: "Le salaire de base est utilisé pour calculer la rémunération des heures supplémentaires dans le portail employé." },

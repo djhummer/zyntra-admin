@@ -1251,6 +1251,7 @@ function setupFormHandlers() {
   $("#btn-save-schedule").addEventListener("click", handleSaveSchedule);
   $("#btn-save-rules")?.addEventListener("click", handleSaveAttendanceRules);
   $("#btn-save-ot-rates")?.addEventListener("click", handleSaveOtRates);
+  $("#btn-save-report-header")?.addEventListener("click", handleSaveReportHeader);
   renderAttendanceRules();
   $("#btn-change-pw").addEventListener("click", handleChangePassword);
   $("#btn-change-email").addEventListener("click", handleChangeEmail);
@@ -1652,6 +1653,9 @@ function renderAttendanceRules() {
   if (wdInput)  wdInput.value  = ((parseFloat(company.ot_rate_weekday_pct) || 0.005) * 100).toFixed(2);
   if (holInput) holInput.value = ((parseFloat(company.ot_rate_holiday_pct) || 0.0075) * 100).toFixed(2);
   if (maxInput) maxInput.value = parseFloat(company.ot_max_pct) ?? 28;
+
+  const rhInput = $("#report-header-text");
+  if (rhInput) rhInput.value = company.report_header || "";
 }
 
 async function handleSaveAttendanceRules() {
@@ -1707,6 +1711,28 @@ async function handleSaveOtRates() {
   company.ot_rate_holiday_pct = holPct;
   company.ot_max_pct = maxPct;
   statusSpan.textContent = t("dash.company.otRatesSaved");
+  statusSpan.style.color = "";
+}
+
+async function handleSaveReportHeader() {
+  const statusSpan = $("#report-header-status");
+  statusSpan.textContent = "";
+
+  const headerText = ($("#report-header-text")?.value ?? "").trim();
+
+  const { data, error } = await supabase
+    .from("companies")
+    .update({ report_header: headerText || null })
+    .eq("id", company.id)
+    .select("id");
+
+  if (error || !data?.length) {
+    statusSpan.textContent = t("dash.company.reportHeaderErrSave", { msg: error?.message || "RLS bloqueó el update" });
+    statusSpan.style.color = "var(--stamp)";
+    return;
+  }
+  company.report_header = headerText || null;
+  statusSpan.textContent = t("dash.company.reportHeaderSaved");
   statusSpan.style.color = "";
 }
 
