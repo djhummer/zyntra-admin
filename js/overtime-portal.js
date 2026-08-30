@@ -243,7 +243,7 @@ function buildFromRecords(records, tz) {
   if (pendingIn) pairs.push({ checkIn: pendingIn, checkOut: null });
 
   return pairs
-    .filter(p => p.checkIn.is_overtime)
+    .filter(p => p.checkIn.is_overtime || p.checkIn.overtime_note)
     .map(({ checkIn, checkOut }) => {
       const d1 = new Date(checkIn.recorded_at);
       const d2 = checkOut ? new Date(checkOut.recorded_at) : null;
