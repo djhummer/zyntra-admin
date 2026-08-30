@@ -433,6 +433,40 @@ function renderEmpInfo() {
   $('#info-max').textContent    = `${cur} ${fmt2(maxAllow)} (${maxPct}%)`;
 }
 
+// ─── Refresh from attendance records ─────────────────
+async function refreshFromAttendance() {
+  if (sessions.length > 0 && !confirm(t('portal.confirmRefresh'))) return;
+
+  const statusEl = $('#portal-status');
+  statusEl.textContent = t('portal.refreshing');
+  statusEl.style.color = '';
+
+  const tz = company.timezone;
+  const { startISO, endISO } = monthBoundsUTC(currentYear, currentMonth, tz);
+
+  const { data: records, error } = await supabase
+    .from('attendance_records')
+    .select('id, type, recorded_at, is_overtime, overtime_note')
+    .eq('employee_id', profile.id)
+    .gte('recorded_at', startISO)
+    .lt('recorded_at', endISO)
+    .order('recorded_at', { ascending: true });
+
+  if (error) {
+    statusEl.textContent = '✗ ' + error.message;
+    statusEl.style.color = 'var(--stamp)';
+    return;
+  }
+
+  sessions = buildFromRecords(records || [], tz);
+  renderTable();
+  renderCalc();
+
+  statusEl.textContent = t('portal.refreshed');
+  statusEl.style.color = 'var(--ok)';
+  setTimeout(() => { if (statusEl.textContent === t('portal.refreshed')) statusEl.textContent = ''; }, 3000);
+}
+
 // ─── Save / Submit ────────────────────────────────────
 async function save(status) {
   const { salary, wRate, hRate, wHours, hHours, wAmount, hAmount, total } = getTotals();
@@ -687,7 +721,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
   document.addEventListener('click', async (e) => {
     const id = e.target.id;
-    if (id === 'btn-logout')  { await supabase.auth.signOut(); }
+    if (id === 'btn-logout')   { await supabase.auth.signOut(); }
+    if (id === 'btn-refresh')  { await refreshFromAttendance(); }
     if (id === 'btn-add-row') {
       const tz = company?.timezone || 'UTC';
       sessions.push({
