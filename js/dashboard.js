@@ -1913,6 +1913,13 @@ function renderOvertimeList() {
           </div>
         </div>
 
+        <!-- Attendance calendar comparison -->
+        <div style="margin-bottom:16px">
+          <button class="btn btn-ghost" data-ot-att-toggle="${s.id}" data-emp="${s.employee_id}" data-year="${s.year}" data-month="${s.month}"
+            style="font-size:12px;border-color:var(--line)">📅 Ver marcación del mes</button>
+          <div id="ot-att-${s.id}" style="display:none;margin-top:10px;border:1px solid var(--line);border-radius:6px;overflow:hidden"></div>
+        </div>
+
         <!-- Signatories (read-only — filled by employee in their portal) -->
         <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;margin-bottom:14px;padding:12px 14px;background:#F5F1E8;border-radius:6px;border:1px solid var(--line)">
           <!-- Quien Autoriza -->
@@ -2010,6 +2017,22 @@ function renderOvertimeList() {
     btn.addEventListener("click", () => handleOtReject(btn.dataset.otReject));
   });
 
+  listEl.querySelectorAll("[data-ot-att-toggle]").forEach(btn => {
+    btn.addEventListener("click", (e) => {
+      e.stopPropagation();
+      const subId  = btn.dataset.otAttToggle;
+      const container = $(`#ot-att-${subId}`);
+      if (!container) return;
+      const visible = container.style.display !== "none";
+      container.style.display = visible ? "none" : "block";
+      btn.textContent = visible ? "📅 Ver marcación del mes" : "📅 Ocultar marcación";
+      if (!visible && !container.dataset.loaded) {
+        container.dataset.loaded = "1";
+        loadAttendanceCalendar(subId, btn.dataset.emp, parseInt(btn.dataset.year), parseInt(btn.dataset.month));
+      }
+    });
+  });
+
   // Wire filter changes
   $("#ot-filter-status")?.removeEventListener("change", renderOvertimeList);
   $("#ot-filter-month")?.removeEventListener("change", renderOvertimeList);
@@ -2092,6 +2115,136 @@ async function handleOtSaveSessions(subId) {
     sub.weekday_hours = wHours; sub.holiday_hours = hHours;
     sub.weekday_amount = wAmt; sub.holiday_amount = hAmt; sub.total_amount = total;
   }
+}
+
+async function loadAttendanceCalendar(subId, employeeId, year, month) {
+  const container = $(`#ot-att-${subId}`);
+  if (!container) return;
+  container.innerHTML = `<p class="hint" style="text-align:center;padding:16px;font-size:12px">${t("common.loading")}</p>`;
+
+  const tz = company.timezone || "UTC";
+  const nextM = month === 12 ? 1 : month + 1;
+  const nextY = month === 12 ? year + 1 : year;
+  const pad2  = n => String(n).padStart(2, "0");
+
+  // Use UTC midnight bounds for the month in the company timezone
+  const { startISO, endISO } = (() => {
+    const sample = new Date(Date.UTC(year, month - 1, 15, 12, 0, 0));
+    const parts  = new Intl.DateTimeFormat("en-CA", {
+      timeZone: tz, year:"numeric", month:"2-digit", day:"2-digit",
+      hour:"2-digit", minute:"2-digit", hour12: false
+    }).formatToParts(sample);
+    const get = type => parseInt(parts.find(p => p.type === type)?.value || "0");
+    const offsetMin = (12 * 60) - (get("hour") * 60 + get("minute"));
+    return {
+      startISO: new Date(Date.UTC(year, month - 1, 1) + offsetMin * 60000).toISOString(),
+      endISO:   new Date(Date.UTC(nextY, nextM - 1, 1) + offsetMin * 60000).toISOString()
+    };
+  })();
+
+  const { data: records, error } = await supabase
+    .from("attendance_records")
+    .select("id, type, recorded_at, is_overtime")
+    .eq("employee_id", employeeId)
+    .gte("recorded_at", startISO)
+    .lt("recorded_at", endISO)
+    .order("recorded_at", { ascending: true });
+
+  if (error) {
+    container.innerHTML = `<p style="color:var(--stamp);padding:12px;font-size:12px">Error: ${escapeHtml(error.message)}</p>`;
+    return;
+  }
+
+  // Pair check-in / check-out into sessions grouped by date
+  const byDate = {};
+  let pendingIn = null;
+  for (const r of records || []) {
+    if (r.type === "check_in") {
+      pendingIn = r;
+    } else if (r.type === "check_out" && pendingIn) {
+      const date = new Intl.DateTimeFormat("en-CA", { timeZone: tz, year:"numeric", month:"2-digit", day:"2-digit" })
+        .format(new Date(pendingIn.recorded_at));
+      (byDate[date] = byDate[date] || []).push({ checkIn: pendingIn, checkOut: r });
+      pendingIn = null;
+    }
+  }
+  if (pendingIn) {
+    const date = new Intl.DateTimeFormat("en-CA", { timeZone: tz, year:"numeric", month:"2-digit", day:"2-digit" })
+      .format(new Date(pendingIn.recorded_at));
+    (byDate[date] = byDate[date] || []).push({ checkIn: pendingIn, checkOut: null });
+  }
+
+  // Claimed OT dates from the submission
+  const sub = otSubmissions.find(s => s.id === subId);
+  const claimedDates = new Set((sub?.sessions || []).map(s => s.date));
+
+  const sortedDates = Object.keys(byDate).sort();
+  if (!sortedDates.length) {
+    container.innerHTML = `<p class="hint" style="text-align:center;padding:16px;font-size:12px">Sin registros de marcación este mes.</p>`;
+    return;
+  }
+
+  const fmtTime = iso => iso
+    ? new Intl.DateTimeFormat("es", { timeZone: tz, hour:"2-digit", minute:"2-digit", hour12: false }).format(new Date(iso))
+    : "—";
+
+  const fmtDate = dateStr => {
+    const d = new Date(dateStr + "T12:00:00Z");
+    return new Intl.DateTimeFormat("es", { weekday:"short", day:"numeric", month:"short" }).format(d);
+  };
+
+  const rows = sortedDates.map(date => {
+    const daySessions = byDate[date];
+    const isClaimed   = claimedDates.has(date);
+    const rowBg       = isClaimed ? "background:rgba(216,90,34,0.07)" : "";
+
+    return daySessions.map((session, i) => {
+      const inTime  = fmtTime(session.checkIn.recorded_at);
+      const outTime = session.checkOut ? fmtTime(session.checkOut.recorded_at) : "—";
+      let duration  = "—";
+      if (session.checkOut) {
+        const mins = (new Date(session.checkOut.recorded_at) - new Date(session.checkIn.recorded_at)) / 60000;
+        const h = Math.floor(mins / 60), m = Math.round(mins % 60);
+        duration = `${h}h${m > 0 ? " " + m + "m" : ""}`;
+      }
+      const isOT = session.checkIn.is_overtime;
+
+      return `<tr style="${rowBg};border-bottom:1px solid var(--line)">
+        ${i === 0 ? `<td rowspan="${daySessions.length}" style="padding:7px 10px;font-size:12px;font-weight:600;white-space:nowrap;vertical-align:middle;border-right:2px solid var(--line);color:var(--ink)">
+          ${escapeHtml(fmtDate(date))}
+          ${isClaimed ? `<span title="Fecha reclamada en formulario OT" style="color:var(--overtime);margin-left:4px;font-size:14px">●</span>` : ""}
+        </td>` : ""}
+        <td style="padding:6px 10px;font-size:12px;text-align:center;font-family:var(--font-display);color:#2E7D32">${inTime}</td>
+        <td style="padding:6px 10px;font-size:12px;text-align:center;font-family:var(--font-display);color:#1565C0">${outTime}</td>
+        <td style="padding:6px 10px;font-size:12px;text-align:center;color:var(--text-muted)">${duration}</td>
+        <td style="padding:6px 10px;font-size:12px;text-align:center">
+          ${isOT
+            ? `<span style="background:var(--stamp-soft);color:var(--stamp);font-size:10px;font-weight:700;padding:2px 7px;border-radius:99px">OT</span>`
+            : `<span style="background:#F0F0F0;color:var(--text-muted);font-size:10px;padding:2px 7px;border-radius:99px">REG</span>`}
+        </td>
+      </tr>`;
+    }).join("");
+  }).join("");
+
+  container.innerHTML = `
+    <div style="padding:9px 12px;background:#F5F1E8;border-bottom:1px solid var(--line);display:flex;justify-content:space-between;align-items:center">
+      <span style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.04em;color:var(--text-muted)">Marcación del mes</span>
+      <span style="font-size:11px;color:var(--text-muted)"><span style="color:var(--overtime)">●</span> Fecha reclamada en formulario OT</span>
+    </div>
+    <div style="overflow-x:auto">
+      <table style="width:100%;border-collapse:collapse">
+        <thead>
+          <tr style="background:#F9F7F2;border-bottom:2px solid var(--line)">
+            <th style="padding:6px 10px;font-size:10px;text-transform:uppercase;letter-spacing:.04em;color:var(--text-muted);text-align:left;border-right:2px solid var(--line)">Fecha</th>
+            <th style="padding:6px 10px;font-size:10px;text-transform:uppercase;letter-spacing:.04em;color:var(--text-muted);text-align:center">Entrada</th>
+            <th style="padding:6px 10px;font-size:10px;text-transform:uppercase;letter-spacing:.04em;color:var(--text-muted);text-align:center">Salida</th>
+            <th style="padding:6px 10px;font-size:10px;text-transform:uppercase;letter-spacing:.04em;color:var(--text-muted);text-align:center">Duración</th>
+            <th style="padding:6px 10px;font-size:10px;text-transform:uppercase;letter-spacing:.04em;color:var(--text-muted);text-align:center">Tipo</th>
+          </tr>
+        </thead>
+        <tbody>${rows}</tbody>
+      </table>
+    </div>`;
 }
 
 async function handleOtApprove(subId) {
