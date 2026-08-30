@@ -177,6 +177,9 @@ async function loadMonth(year, month) {
 
   holidaySet = new Set((holRes.data || []).map(h => h.date));
 
+  // Always build fresh sessions from attendance records to extract overtime_note
+  const freshSessions = buildFromRecords(recRes.data || [], tz);
+
   if (subRes.data?.sessions?.length) {
     submissionId       = subRes.data.id;
     submissionStatus   = subRes.data.status;
@@ -186,9 +189,14 @@ async function loadMonth(year, month) {
     reviewerSubtitle   = subRes.data.reviewer_subtitle   || '';
     reviewerPosition   = subRes.data.reviewer_position   || '';
     rejectionNote      = subRes.data.rejection_note      || '';
-    sessions = applyRounding(subRes.data.sessions);
+    // Merge: saved description takes priority; fall back to app overtime_note if empty
+    const noteByDate = new Map(freshSessions.map(s => [s.date, s.description]));
+    sessions = applyRounding(subRes.data.sessions).map(s => ({
+      ...s,
+      description: s.description || noteByDate.get(s.date) || ''
+    }));
   } else {
-    sessions = buildFromRecords(recRes.data || [], tz);
+    sessions = freshSessions;
   }
 
   renderTable();
