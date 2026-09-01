@@ -1384,7 +1384,24 @@ async function handleSaveWorkHours() {
 
   company.work_start = workStart;
   company.work_end = workEnd;
-  alertBox.textContent = t("dash.company.hoursSaved");
+
+  // Sync notification reminder times in work_schedules to match the new work hours.
+  // Only updates existing rows (active workdays); inactive days have no row.
+  const { error: syncError } = await supabase
+    .from("work_schedules")
+    .update({ check_in_time: workStart, check_out_time: workEnd })
+    .eq("company_id", company.id);
+
+  if (syncError) {
+    // Show success for the company save but warn about the sync failure.
+    alertBox.textContent = t("dash.company.hoursSaved") + " " + t("dash.company.hoursErrSave", { msg: syncError.message });
+    alertBox.className = "alert success";
+    return;
+  }
+
+  // Refresh the reminders table so the UI reflects the new times immediately.
+  await loadWorkSchedules();
+  alertBox.textContent = t("dash.company.hoursSavedSync");
   alertBox.className = "alert success";
 }
 

@@ -314,6 +314,7 @@ const dict = {
   "dash.company.workEnd": { es: "Salida", en: "End", id: "Keluar", fr: "Sortie" },
   "dash.company.hoursSave": { es: "Guardar horario", en: "Save hours", id: "Simpan jam kerja", fr: "Enregistrer les horaires" },
   "dash.company.hoursSaved": { es: "Horario actualizado.", en: "Hours updated.", id: "Jam kerja diperbarui.", fr: "Horaires mis à jour." },
+  "dash.company.hoursSavedSync": { es: "Horario actualizado y recordatorios sincronizados.", en: "Hours updated and reminders synced.", id: "Jam kerja diperbarui dan pengingat disinkronkan.", fr: "Horaires mis à jour et rappels synchronisés." },
   "dash.company.hoursErrMissing": { es: "Completa la hora de entrada y salida.", en: "Fill in both start and end times.", id: "Isi jam masuk dan keluar.", fr: "Remplissez l'heure d'entrée et de sortie." },
   "dash.company.hoursErrSave": { es: "No se pudo guardar: {msg}", en: "Couldn't save: {msg}", id: "Gagal menyimpan: {msg}", fr: "Impossible d'enregistrer : {msg}" },
 
