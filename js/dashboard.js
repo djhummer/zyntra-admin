@@ -577,7 +577,7 @@ async function renderCalendarView(groupedForFilter) {
           else regularMinutes += mins;
         }
         if (sessionOtMinutes > 0) overtimeMinutes += Math.round(sessionOtMinutes / 30) * 30;
-        if (!lateCalcDone) {
+        if (!lateCalcDone && !s.checkIn.is_overtime) {
           totalLateMinutes += calcLateMinutes(s.checkIn.recorded_at, dayGroup.date, dayIsHoliday);
           lateCalcDone = true;
         }
@@ -615,13 +615,13 @@ async function renderCalendarView(groupedForFilter) {
                 if (part.type === "overtime") sessionOtMinutes += (part.end - part.start) / 60000;
               }
               if (sessionOtMinutes > 0) dayOvertimeMinutes += Math.round(sessionOtMinutes / 30) * 30;
-              if (!dayLateCalcDone) {
+              if (!dayLateCalcDone && !s.checkIn.is_overtime) {
                 dayLateMinutes += calcLateMinutes(s.checkIn.recorded_at, g.date, isHoliday);
                 dayLateCalcDone = true;
               }
             } else if (s.checkIn) {
               inner += `<div class="cal-bar incomplete">${fmtTime(s.checkIn.recorded_at)} ${t("dash.cal.noSalida")}</div>`;
-              if (!dayLateCalcDone) {
+              if (!dayLateCalcDone && !s.checkIn.is_overtime) {
                 dayLateMinutes += calcLateMinutes(s.checkIn.recorded_at, g.date, isHoliday);
                 dayLateCalcDone = true;
               }
